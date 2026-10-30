@@ -10,7 +10,9 @@ const player: Player = {
   name: 'Tester',
   phoneMasked: '+966 5•• ••• 123',
   birthDate: '1990-01-01',
-  nationalIdMasked: '1•••••••78',
+  dobSource: 'declared',
+  nationalIdMasked: null,
+  identityVerifiedAt: null,
   iban: null,
   cityId: 'riyadh',
   rating: 1200,
@@ -242,7 +244,7 @@ describe('FR-30 engagement', () => {
 
   it('FR-04: only the super admin changes when the IBAN is required, with a reason', () => {
     let s = reducer(signedIn(), { type: 'ibanRequiredAt', value: 'ranked', reason: 'x' });
-    expect(s.ibanRequiredAt).toBe('signup');
+    expect(s.ibanRequiredAt).toBe('prize');
     s = reducer(reducer(s, { type: 'adminSignIn', role: 'super_admin' }), {
       type: 'ibanRequiredAt',
       value: 'ranked',
@@ -251,7 +253,7 @@ describe('FR-30 engagement', () => {
     expect(s.ibanRequiredAt).toBe('ranked');
     expect(s.audit[0]).toMatchObject({
       entity: 'identity.iban_required_at',
-      before: 'signup',
+      before: 'prize',
       after: 'ranked',
     });
   });
@@ -274,5 +276,26 @@ describe('accounts on this device', () => {
     expect(
       images.filter((q) => q.image?.startsWith('logo-')).every((q) => q.sponsored && q.campaignId),
     ).toBe(true);
+  });
+});
+
+describe('mobile sign-up, Nafath for payments (owner decision, 2026-10-30)', () => {
+  it('a mobile-only player plays; the IBAN waits for a Nafath-verified identity', () => {
+    let s = signedIn();
+    expect(s.ibanRequiredAt).toBe('prize');
+    s = reducer(s, { type: 'setIban', masked: 'SA12 •••• •••• •••• 3456' });
+    expect(s.player?.iban).toBeNull();
+    s = reducer(s, {
+      type: 'verifyIdentity',
+      nationalIdMasked: '1•••••••78',
+      birthDate: '1990-05-01',
+    });
+    expect(s.player).toMatchObject({
+      dobSource: 'nafath',
+      nationalIdMasked: '1•••••••78',
+      birthDate: '1990-05-01',
+    });
+    s = reducer(s, { type: 'setIban', masked: 'SA12 •••• •••• •••• 3456' });
+    expect(s.player?.iban?.masked).toBe('SA12 •••• •••• •••• 3456');
   });
 });

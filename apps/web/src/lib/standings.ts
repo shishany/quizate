@@ -30,7 +30,14 @@ export function useBoard(now = new Date()): {
     const standings = SAMPLE_PLAYERS.map((p) =>
       standingFor(p.id, sample.get(p.id) ?? [], month, config),
     );
-    if (player) standings.push(standingFor(player.id, myResults, month, config));
+    if (player) {
+      const mine = standingFor(player.id, myResults, month, config);
+      // BR-15: the prize ranking also needs a Nafath-verified identity and a verified IBAN.
+      standings.push({
+        ...mine,
+        eligible: mine.eligible && Boolean(player.identityVerifiedAt && player.iban),
+      });
+    }
     const ranked = rankStandings(standings);
     const myAllTime = matches.reduce((s, m) => s + m.monthlyPoints, 0);
     const rows: BoardRow[] = ranked.map((r) => {

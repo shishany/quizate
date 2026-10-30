@@ -42,6 +42,19 @@ export const en: Dictionary = {
     adminCta: 'Enter the admin console',
   },
   signin: {
+    methodIntro:
+      'Choose how to sign up. A mobile number is enough to play; Nafath verification is needed later for the prize ranking and payouts.',
+    methodPhone: 'Sign up with a mobile number',
+    methodPhoneBody: 'Fastest: your mobile and a code, and you are playing.',
+    methodNafath: 'Sign up with Nafath',
+    methodNafathBody: 'Verified from the start, with your IBAN, ready for the prize ranking.',
+    dobLabel: 'Date of birth',
+    dobHint: 'Verified with Nafath before any payout.',
+    dobRequired: 'Enter your date of birth.',
+    underMinAge: 'Playing is for people aged {n} and over.',
+    verifyLaterNote:
+      'You can play now. To enter the prize ranking and receive payouts, verify your identity with Nafath and add your IBAN in your account.',
+    changeMethod: 'Change sign-up method',
     tabNew: 'New account',
     tabSignIn: 'Sign in',
     signInTitle: 'Welcome back',
@@ -115,7 +128,11 @@ export const en: Dictionary = {
     profile: 'Account',
   },
   home: {
-    ibanNeeded: 'Add a verified IBAN in your account to play ranked matches.',
+    verifyTitle: 'Verify your account for prizes',
+    verifyBody: 'Nafath and your IBAN are needed for the prize ranking and payouts.',
+    verifyCta: 'Verify',
+    ibanNeeded:
+      'Verify your identity with Nafath and add your IBAN in your account to play ranked matches.',
     greeting: 'Hello {name}',
     rankedTitle: 'Ranked match',
     rankedBody:
@@ -260,6 +277,11 @@ export const en: Dictionary = {
     bot: 'Bot',
   },
   profile: {
+    notVerified: 'Identity not verified',
+    dobVerified: 'verified',
+    dobDeclared: 'declared',
+    verifyWhy:
+      'Verify your identity with Nafath, then add your IBAN, to enter the prize ranking and receive payouts.',
     level: 'Level',
     coins: 'Coins',
     identity: 'Identity and bank account',
@@ -476,14 +498,14 @@ export const en: Dictionary = {
   },
   config: {
     ibanTitle: 'Identity',
-    ibanLabel: 'When a verified IBAN is required',
+    ibanLabel: 'When Nafath and a verified IBAN are required',
     ibanAt: {
       signup: 'At sign-up',
       ranked: 'Before ranked play',
       prize: 'Before prizes',
     },
     ibanNote:
-      'Sign-up by default. Move it to before ranked play if sign-up completion falls below 60%.',
+      'Default: before prizes, so a mobile number is enough to play. "At sign-up" makes Nafath mandatory to register; "Before ranked play" asks for it before ranked matches.',
     title: 'Configuration',
     intro: 'Every default in the BRD is editable configuration, and each change records a reason.',
     key: 'Setting',

@@ -28,7 +28,7 @@ import type {
 } from './types';
 
 export const STORAGE_KEY = 'quizate-demo-v1';
-export const STATE_VERSION = 3;
+export const STATE_VERSION = 4;
 
 /** The one verification code of the sample version, for every number and every admin role. No message is sent. */
 export const SAMPLE_CODE = '000000';
@@ -361,6 +361,6 @@ export function initialState(now = new Date()): DemoState {
     roadClaims: [],
     cosmetics: [],
     equipped: { frame: null, title: null },
-    ibanRequiredAt: 'signup',
+    ibanRequiredAt: 'prize',
   };
 }

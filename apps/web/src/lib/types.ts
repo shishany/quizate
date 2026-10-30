@@ -50,10 +50,12 @@ export interface Player {
   name: string;
   /** Masked for display, e.g. +966 5•• ••• 123. The full number is not kept. */
   phoneMasked: string;
-  /** From Nafath (FR-01): verified date of birth. */
+  /** Declared at mobile sign-up, or verified by Nafath. */
   birthDate: string;
-  /** National ID / Iqama, masked; the full number is never kept in the sample. */
-  nationalIdMasked: string;
+  dobSource: 'declared' | 'nafath';
+  /** Set once Nafath has verified the identity (the check for payments, BR-15). Masked; never kept in full. */
+  nationalIdMasked: string | null;
+  identityVerifiedAt: string | null;
   /** FR-04: Saudi IBAN verified as owned by the same ID number; masked. */
   iban: { masked: string; verifiedAt: string } | null;
   cityId: string;
@@ -194,7 +196,7 @@ export interface DemoState {
   roadClaims: string[];
   cosmetics: string[];
   equipped: { frame: string | null; title: string | null };
-  /** Config `identity.iban_required_at` (FR-04). */
+  /** Config `identity.iban_required_at` (FR-04): when Nafath + a verified IBAN are required. */
   ibanRequiredAt: 'signup' | 'ranked' | 'prize';
   /** Sponsored answers given by this player: city → counts. */
   sponsorTally: { impressions: number; answers: number; correct: number };

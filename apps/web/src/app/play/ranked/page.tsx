@@ -58,7 +58,11 @@ export default function RankedPage() {
     () => state.myResults.map((r) => ({ at: r.at, opponentId: r.opponentId })),
     [state.myResults],
   );
-  const allowed = rankedAllowed(history, state.abandons, new Date(), cfg);
+  const limits = rankedAllowed(history, state.abandons, new Date(), cfg);
+  // FR-04: when configured, ranked play needs a Nafath-verified identity and a verified IBAN first.
+  const needsVerification =
+    state.ibanRequiredAt === 'ranked' && !(player?.identityVerifiedAt && player.iban);
+  const allowed = needsVerification ? ({ ok: false, reason: 'VERIFY' } as const) : limits;
 
   useEffect(() => {
     if (phase.kind !== 'search' && phase.kind !== 'found') return;
@@ -229,9 +233,11 @@ export default function RankedPage() {
 
       {!allowed.ok && phase.kind === 'setup' && (
         <Notice tone="warn">
-          {allowed.reason === 'DAILY_LIMIT'
-            ? d.home.dailyLimit
-            : fill(d.home.abandonBlock, { time: date(allowed.resetsAt, true) })}
+          {allowed.reason === 'VERIFY'
+            ? d.home.ibanNeeded
+            : allowed.reason === 'DAILY_LIMIT'
+              ? d.home.dailyLimit
+              : fill(d.home.abandonBlock, { time: date(allowed.resetsAt, true) })}
         </Notice>
       )}
       {problem && <Notice tone="warn">{problem}</Notice>}

@@ -6,7 +6,7 @@ import { Avatar, Coin, useEngagement } from '@/components/player/engagement';
 import { Badge, Button, Card, LangToggle, Notice } from '@/components/ui';
 import { useT } from '@/i18n';
 import { badgesFor, type CosmeticId } from '@/lib/engagement';
-import { ibanValid, maskIban, normalizeIban } from '@/lib/identity';
+import { IbanVerify, NafathVerify } from '@/components/player/Verify';
 import { cityById } from '@/lib/sample';
 import { useStore } from '@/lib/store';
 
@@ -26,8 +26,8 @@ export default function ProfilePage() {
   const { d, fill, num, pick, date } = useT();
   const router = useRouter();
   const e = useEngagement();
-  const [iban, setIban] = useState('');
-  const [ibanMsg, setIbanMsg] = useState('');
+  /** Kept only in memory, to fill the sample IBAN; never stored. */
+  const [nid, setNid] = useState<string | null>(null);
   const p = state.player;
   if (!p) return null;
   const earned = badgesFor(state);
@@ -51,13 +51,6 @@ export default function ProfilePage() {
     a.download = 'my-data.json';
     a.click();
     URL.revokeObjectURL(url);
-  }
-
-  function addIban() {
-    if (!ibanValid(iban)) return setIbanMsg(d.signin.ibanInvalid);
-    dispatch({ type: 'setIban', masked: maskIban(iban) });
-    setIban('');
-    setIbanMsg('');
   }
 
   function wipe(message: string) {
@@ -108,16 +101,33 @@ export default function ProfilePage() {
       </Card>
 
       <Card title={d.profile.identity}>
-        <dl className="space-y-2 text-sm">
+        <div id="verify" className="flex flex-wrap gap-2">
+          {p.identityVerifiedAt ? (
+            <Badge tone="ok">{d.profile.nafath}</Badge>
+          ) : (
+            <Badge tone="warn">{d.profile.notVerified}</Badge>
+          )}
+          {p.iban ? (
+            <Badge tone="ok">{d.profile.ibanVerified}</Badge>
+          ) : (
+            <Badge tone="warn">{d.profile.ibanNone}</Badge>
+          )}
+        </div>
+        <dl className="mt-3 space-y-2 text-sm">
           <div className="flex items-center justify-between gap-2">
             <dt className="text-muted">{d.profile.nationalId}</dt>
             <dd className="tabular font-semibold" dir="ltr">
-              {p.nationalIdMasked}
+              {p.nationalIdMasked ?? '—'}
             </dd>
           </div>
           <div className="flex items-center justify-between gap-2">
             <dt className="text-muted">{d.profile.dob}</dt>
-            <dd className="font-semibold">{date(`${p.birthDate}T12:00:00Z`)}</dd>
+            <dd className="font-semibold">
+              {date(`${p.birthDate}T12:00:00Z`)}{' '}
+              <span className="text-xs font-normal text-muted">
+                ({p.dobSource === 'nafath' ? d.profile.dobVerified : d.profile.dobDeclared})
+              </span>
+            </dd>
           </div>
           <div className="flex items-center justify-between gap-2">
             <dt className="text-muted">{d.profile.iban}</dt>
@@ -126,32 +136,28 @@ export default function ProfilePage() {
             </dd>
           </div>
         </dl>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Badge tone="ok">{d.profile.nafath}</Badge>
-          {p.iban ? (
-            <Badge tone="ok">{d.profile.ibanVerified}</Badge>
-          ) : (
-            <Badge tone="warn">{d.profile.ibanNone}</Badge>
-          )}
-        </div>
-        {!p.iban && (
-          <div className="mt-3 space-y-2">
-            <input
-              className="tabular w-full rounded-xl border border-line px-3 py-2 uppercase"
-              dir="ltr"
-              placeholder="SA…"
-              aria-label={d.signin.ibanLabel}
-              value={iban}
-              onChange={(ev) => setIban(normalizeIban(ev.target.value).slice(0, 24))}
+        {!p.identityVerifiedAt && (
+          <div className="mt-4 rounded-xl border border-line p-3">
+            <p className="mb-3 text-sm font-medium">{d.profile.verifyWhy}</p>
+            <NafathVerify
+              onVerified={(v) => {
+                setNid(v.nationalId);
+                dispatch({
+                  type: 'verifyIdentity',
+                  nationalIdMasked: v.nationalIdMasked,
+                  birthDate: v.birthDate,
+                });
+              }}
             />
-            {ibanMsg && (
-              <p role="alert" className="text-sm text-bad">
-                {ibanMsg}
-              </p>
-            )}
-            <Button variant="secondary" onClick={addIban}>
-              {d.signin.ibanVerify}
-            </Button>
+          </div>
+        )}
+        {p.identityVerifiedAt && !p.iban && (
+          <div className="mt-4 rounded-xl border border-line p-3">
+            <IbanVerify
+              nationalId={nid}
+              nationalIdMasked={p.nationalIdMasked ?? ''}
+              onVerified={(masked) => dispatch({ type: 'setIban', masked })}
+            />
           </div>
         )}
         <p className="mt-3 text-xs text-muted">{d.profile.identityNote}</p>

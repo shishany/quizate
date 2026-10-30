@@ -56,6 +56,7 @@ export type Action =
   | { type: 'claimMission'; id: string }
   | { type: 'claimRoad'; nodeId: string }
   | { type: 'equip'; slot: 'frame' | 'title'; id: string | null }
+  | { type: 'verifyIdentity'; nationalIdMasked: string; birthDate: string }
   | { type: 'setIban'; masked: string }
   | { type: 'ibanRequiredAt'; value: DemoState['ibanRequiredAt']; reason: string }
   | { type: 'rankedStart'; active: NonNullable<DemoState['activeRanked']> }
@@ -308,8 +309,22 @@ export function reducer(state: DemoState, action: Action): DemoState {
     case 'equip':
       if (action.id && !state.cosmetics.includes(action.id)) return state;
       return { ...state, equipped: { ...state.equipped, [action.slot]: action.id } };
-    case 'setIban':
+    case 'verifyIdentity':
       return state.player
+        ? {
+            ...state,
+            player: {
+              ...state.player,
+              nationalIdMasked: action.nationalIdMasked,
+              birthDate: action.birthDate,
+              dobSource: 'nafath',
+              identityVerifiedAt: new Date().toISOString(),
+            },
+          }
+        : state;
+    case 'setIban':
+      // FR-04: an IBAN is verified against the Nafath ID number, so identity comes first.
+      return state.player?.identityVerifiedAt
         ? {
             ...state,
             player: {

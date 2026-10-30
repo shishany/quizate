@@ -5,7 +5,7 @@ runs entirely in the browser on sample data and is hosted on Vercel as static pa
 
 ## Updated to BRD v1.1
 
-Sign-up with a sample Nafath identity and a verified IBAN, a Sign in tab for returning players, Urdu as a third
+Registration with a mobile number or with Nafath (Nafath + IBAN are the check for payments and can be done later from the account), a Sign in tab for returning players, Urdu as a third
 language, the engagement layer (levels, XP, coins, streaks, daily claim, missions, question of the day, badges,
 cosmetics), the Mirror Challenge, the ladder road with rewards, image questions (flags and sponsor logos) and a
 one-click admin entry. Details in CLAUDE.md ("Web demo"). Some sections below describe the first version.

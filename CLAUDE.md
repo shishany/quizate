@@ -7,7 +7,7 @@ Read this first in every session and keep it current. Update it whenever a decis
 
 ## Product
 
-Free, 18+ only, Arabic-first (then English, then Urdu) 1v1 trivia game for Saudi Arabia. Two players are matched
+Free, 18+, Arabic-first (then English, then Urdu) 1v1 trivia game for Saudi Arabia. Two players are matched
 (nearest first, then nationwide), answer the same 10 questions under a server timer, and earn points. A monthly
 leaderboard ranks qualified players. An engagement layer (XP levels, ranked ladder, daily loop, Mirror Challenge,
 later clubs and team modes) drives retention. Revenue: sponsored questions/campaigns, ads, corporate SaaS. Cash prizes
@@ -50,10 +50,12 @@ file win.
 6. No in-app wallet, stored value, purchasable points or coins, paid attempts, paid entry or paid random rewards.
    Coins are earned only: never bought, gifted, traded, cashed or used as an entry fee. Points and XP have no cash
    value.
-7. 18+ only. Identity comes from Nafath (verified date of birth); refuse under-18. One account per national ID /
-   Iqama number. The IBAN must be verified as owned by the same ID number before it becomes active (config
-   `identity.iban_required_at` = `signup` | `ranked` | `prize`, default `signup`). Prize payouts only by bank transfer
-   to that verified IBAN.
+7. Anyone with a Saudi mobile number (OTP) can play, with a declared date of birth (minimum age 18 per BRD v1.1,
+   configurable). Nafath (verified date of birth, under-18 refused) plus an IBAN verified as owned by the same ID
+   number are the identity check for payments: required before the prize ranking by default (config
+   `identity.iban_required_at` = `signup` | `ranked` | `prize`, default `prize`; owner decision 2026-10-30, changing
+   BRD v1.1's sign-up default). One account per mobile number, and per national ID / Iqama once verified. Prize
+   payouts only by bank transfer to that verified IBAN.
 8. Personal data stays in the Saudi region. Location is used only for an active queue ticket, rounded to ~1 km, and
    deleted when the match starts. Opponents see city + distance band only. National ID and IBAN are field-encrypted
    and never logged.
@@ -135,10 +137,12 @@ written for every admin action; strings present in ar, en and ur; no TODOs in mo
   the admin console, locked, as "planned".
 
 - **Updated to BRD v1.1 (2026-10-30):**
-  - Sign-up: sample Nafath (ID → number match → verified date of birth; IDs ending in 9 show the under-18 refusal),
-    mobile + code `000000`, display name, IBAN with mod-97 check and simulated ownership verification (FR-01, FR-04;
-    `identity.iban_required_at` editable in admin), consents. Signing out keeps the account on the device; the
-    Sign in tab restores it (mobile + code, or Nafath ID).
+  - Registration (owner decision, 2026-10-30): **mobile number** (mobile + `000000`, name, declared date of birth,
+    city, consents) **or Nafath** (verified from the start, with the IBAN step). Nafath + IBAN are the check for
+    payments: a mobile-only player verifies later from the account page (`components/player/Verify.tsx`), and the
+    prize ranking (BR-15) counts only verified players with a verified IBAN. `identity.iban_required_at` (admin
+    setting, default `prize`): `signup` hides the mobile option, `ranked` gates ranked play. IDs ending in 9 show the
+    Nafath under-18 refusal. Signing out keeps the account on the device; the Sign in tab restores it.
   - Admin: one click into the console as super admin; other roles optional (production needs password + 2FA).
   - Urdu (FR-29): full UI dictionary `src/i18n/ur.ts` (draft, needs a native reviewer before go-live), Nastaliq font;
     questions show in Arabic with an "awaiting Urdu review" note until a reviewed Urdu text exists.

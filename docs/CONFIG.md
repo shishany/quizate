@@ -44,9 +44,10 @@ None yet. Each prompt that adds a key lists it here with its BRD source, default
 
 ## Identity configuration
 
-| Key                         | Default  | Notes                                                                                                                                                                                |
-| --------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `identity.iban_required_at` | `signup` | `signup` \| `ranked` \| `prize`: when a verified IBAN (same ID number as Nafath) is required. BRD v1.1 FR-04; ENGAGEMENT.md suggests `ranked` if sign-up completion falls below 60%. |
+| Key                         | Default | Notes                                                                                                                                                                                                                      |
+| --------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `identity.iban_required_at` | `prize` | `signup` \| `ranked` \| `prize`: when Nafath identity and a verified IBAN (same ID number) are required. Owner decision 2026-10-30: a mobile number is enough to play, so the default is `prize` (BRD v1.1 said `signup`). |
+| Minimum age to play         | 18      | Declared at mobile sign-up; verified by Nafath before payouts (BRD v1.1).                                                                                                                                                  |
 
 ## Engagement configuration (`packages/game/src/engagement.ts`, FR-30)
 

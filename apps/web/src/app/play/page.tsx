@@ -26,7 +26,8 @@ export default function Home() {
   const now = new Date();
   const history = state.myResults.map((r) => ({ at: r.at, opponentId: r.opponentId }));
   const limits = rankedAllowed(history, state.abandons, now, cfg);
-  const needsIban = state.ibanRequiredAt === 'ranked' && !state.player?.iban;
+  const needsIban =
+    state.ibanRequiredAt === 'ranked' && !(state.player?.identityVerifiedAt && state.player.iban);
   const left = rankedLeftToday(history, now, cfg);
   const tier = ENG.ladder.tiers[e.ladder.tierIndex];
   const blocked = needsIban
@@ -43,6 +44,20 @@ export default function Home() {
         {fill(d.home.greeting, { name: state.player?.name ?? '' })}
       </h1>
       <EngagementBar />
+      {!(state.player?.identityVerifiedAt && state.player.iban) && (
+        <Link
+          href="/play/profile#verify"
+          className="flex items-center justify-between gap-3 rounded-2xl border border-[#0e7a5a]/30 bg-[#e9f6f1] p-4 text-[#0b5a43]"
+        >
+          <span>
+            <span className="block font-bold">{d.home.verifyTitle}</span>
+            <span className="block text-sm">{d.home.verifyBody}</span>
+          </span>
+          <span className="shrink-0 rounded-xl bg-[#0e7a5a] px-3 py-2 text-sm font-semibold text-white">
+            {d.home.verifyCta}
+          </span>
+        </Link>
+      )}
       <DailyClaim />
 
       <Card
