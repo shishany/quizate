@@ -1,6 +1,6 @@
 {
   "@@locale": "ar",
-  "appName": "كويزيت",
+  "appName": "كويزاتي",
   "@appName": { "description": "Product name; mirrors PRODUCT.nameAr in packages/shared/src/product.ts." },
   "tagline": "تحدَّ لاعباً قريباً منك في عشرة أسئلة",
   "comingSoon": "قريباً"

@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// Product name; mirrors PRODUCT.nameAr in packages/shared/src/product.ts.
   ///
   /// In ar, this message translates to:
-  /// **'كويزيت'**
+  /// **'كويزاتي'**
   String get appName;
 
   /// No description provided for @tagline.

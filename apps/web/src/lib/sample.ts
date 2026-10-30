@@ -20,6 +20,9 @@ import type { AdminRole, City, DemoState, FraudFlag, Question, SamplePlayer } fr
 export const STORAGE_KEY = 'quizate-demo-v1';
 export const STATE_VERSION = 1;
 
+/** The one verification code of the sample version, for every number and every admin role. No message is sent. */
+export const SAMPLE_CODE = '000000';
+
 /** Ten cities, as in the build prompt's seed. Centre points rounded to about 1 km. */
 export const CITIES: City[] = [
   { id: 'riyadh', name: { ar: 'الرياض', en: 'Riyadh' }, lat: 24.71, lng: 46.68 },

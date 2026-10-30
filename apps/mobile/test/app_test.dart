@@ -7,7 +7,7 @@ void main() {
     await tester.pumpWidget(const QuizateApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('كويزيت'), findsOneWidget);
+    expect(find.text('كويزاتي'), findsOneWidget);
     final context = tester.element(find.byType(HomePlaceholder));
     expect(Directionality.of(context), TextDirection.rtl);
   });

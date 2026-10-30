@@ -10,7 +10,7 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
-  String get appName => 'كويزيت';
+  String get appName => 'كويزاتي';
 
   @override
   String get tagline => 'تحدَّ لاعباً قريباً منك في عشرة أسئلة';

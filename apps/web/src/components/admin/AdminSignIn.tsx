@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Button, Card, LangToggle, Notice, ProductMark, SampleChip } from '@/components/ui';
 import { useT } from '@/i18n';
 import { productName } from '@/lib/product';
-import { ADMIN_USERS } from '@/lib/sample';
+import { ADMIN_USERS, SAMPLE_CODE } from '@/lib/sample';
 import { useStore } from '@/lib/store';
 import type { AdminRole } from '@/lib/types';
 
@@ -13,7 +13,7 @@ export function AdminSignIn() {
   const { dispatch } = useStore();
   const { d, fill, pick } = useT();
   const [role, setRole] = useState<AdminRole>('super_admin');
-  const [code] = useState(() => String(Math.floor(100000 + Math.random() * 900000)));
+  const code = SAMPLE_CODE;
   const [entered, setEntered] = useState('');
   const [error, setError] = useState('');
 

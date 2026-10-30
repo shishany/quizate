@@ -5,7 +5,7 @@ import { Button, Card, LangToggle, Notice, ProductMark, SampleChip } from '@/com
 import { useT } from '@/i18n';
 import { ageOn, displayNameValid } from '@/lib/moderation';
 import { productName } from '@/lib/product';
-import { CITIES } from '@/lib/sample';
+import { CITIES, SAMPLE_CODE } from '@/lib/sample';
 import { useStore } from '@/lib/store';
 import type { Player } from '@/lib/types';
 
@@ -19,7 +19,6 @@ export function SignIn() {
   const [step, setStep] = useState<'phone' | 'code' | 'profile'>('phone');
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
-  const [sentCode, setSentCode] = useState('');
   const [error, setError] = useState('');
   const [name, setName] = useState('');
   const [dob, setDob] = useState('');
@@ -37,12 +36,11 @@ export function SignIn() {
   function send() {
     if (!/^5\d{8}$/.test(phone)) return setError(d.signin.phoneInvalid);
     setError('');
-    setSentCode(String(Math.floor(100000 + Math.random() * 900000)));
     setStep('code');
   }
 
   function verify() {
-    if (code.trim() !== sentCode) return setError(d.signin.codeInvalid);
+    if (code.trim() !== SAMPLE_CODE) return setError(d.signin.codeInvalid);
     setError('');
     setStep('profile');
   }
@@ -120,7 +118,7 @@ export function SignIn() {
             )}
             {step === 'code' && (
               <>
-                <Notice tone="gold">{fill(d.signin.sampleCode, { code: sentCode })}</Notice>
+                <Notice tone="gold">{fill(d.signin.sampleCode, { code: SAMPLE_CODE })}</Notice>
                 <label className="block">
                   <span className="mb-1 block text-sm font-medium">{d.signin.codeLabel}</span>
                   <input
