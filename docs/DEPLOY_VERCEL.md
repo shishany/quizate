@@ -5,14 +5,15 @@ install and build commands, so the import is mostly clicks.
 
 ## 1. Import the project
 
+The demo is a **static export** (`output: 'export'` in `apps/web/next.config.ts`): plain files in `apps/web/out`,
+no server. The root `vercel.json` sets everything, so the defaults work:
+
 1. In Vercel, **Add New → Project**, and import the GitHub repository `shishany/quizate`.
-2. **Root Directory:** `apps/web`. Leave "Include files outside the root directory" on (the build needs
-   `packages/game` and `packages/shared`).
-3. **Framework preset:** Next.js (detected). Leave the build and install commands empty; `vercel.json` sets them:
-   - install: `cd ../.. && pnpm install --frozen-lockfile`
-   - build: `cd ../.. && pnpm turbo run build --filter=@quizate/web`
-4. **Production branch:** `main` (Settings → Git after the first deploy). Until the demo branch is merged, deploy
-   the branch as a preview, or set the production branch to `demo-web` temporarily.
+2. **Root Directory:** leave it as the repository root. (`apps/web` also works; `apps/web/vercel.json` mirrors the
+   settings.)
+3. **Framework preset:** leave as detected; `vercel.json` sets `framework: null`, the install and build commands, the
+   output directory (`apps/web/out`), clean URLs and the security headers.
+4. **Production branch:** `main` (Settings → Environments → Production → Branch Tracking).
 5. No environment variables are needed.
 
 ## 2. Add the subdomain

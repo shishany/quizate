@@ -8,3 +8,4 @@ coverage/
 .env.local
 !.env.example
 next-env.d.ts
+apps/web/out/

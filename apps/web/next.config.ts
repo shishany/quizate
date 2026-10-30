@@ -1,20 +1,13 @@
 import type { NextConfig } from 'next';
 
+/**
+ * Static export: the sample version needs no server, so it is published as plain files (apps/web/out). Security
+ * headers are set by the host (vercel.json), since a static export cannot send headers itself.
+ */
 const config: NextConfig = {
+  output: 'export',
   poweredByHeader: false,
-  async headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          { key: 'X-Frame-Options', value: 'DENY' },
-          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self)' },
-        ],
-      },
-    ];
-  },
+  images: { unoptimized: true },
 };
 
 export default config;
