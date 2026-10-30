@@ -4,4 +4,4 @@ Versioned consent records (terms, privacy, location, marketing) with view and re
 
 - **BRD IDs:** FR-01, FR-02, FR-03
 - **Built in:** Prompt 3 (`docs/BUILD_PROMPTS.md`)
-- **Talks to other modules** only through their exported services or domain events (architecture rule 9).
+- **Talks to other modules** only through their exported services or domain events (architecture rule 11).

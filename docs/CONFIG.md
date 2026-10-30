@@ -42,6 +42,12 @@ Passed with `--dart-define`; anything compiled into the app is public, so never 
 
 None yet. Each prompt that adds a key lists it here with its BRD source, default, unit and who may change it.
 
+## Identity configuration
+
+| Key                         | Default  | Notes                                                                                                                                                                                |
+| --------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `identity.iban_required_at` | `signup` | `signup` \| `ranked` \| `prize`: when a verified IBAN (same ID number as Nafath) is required. BRD v1.1 FR-04; ENGAGEMENT.md suggests `ranked` if sign-up completion falls below 60%. |
+
 ## Feature flags
 
 | Flag             | Default                      | Who may change it                                                                                       |

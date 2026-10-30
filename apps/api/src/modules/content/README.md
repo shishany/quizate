@@ -4,4 +4,4 @@ Question bank: lifecycle (draft, in review, published, retired), versions pinned
 
 - **BRD IDs:** FR-12, FR-13, FR-14, FR-15, BR-13, BR-14
 - **Built in:** Prompt 4 (`docs/BUILD_PROMPTS.md`)
-- **Talks to other modules** only through their exported services or domain events (architecture rule 9).
+- **Talks to other modules** only through their exported services or domain events (architecture rule 11).

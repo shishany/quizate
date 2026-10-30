@@ -2,64 +2,81 @@
 
 Read this first in every session and keep it current. Update it whenever a decision changes.
 
-"Quizate" is a working name. The product name lives in one constant, `PRODUCT.name` in
+"Quizate" (Arabic: كويزاتي) is a working name. The product name lives in one constant, `PRODUCT` in
 `packages/shared/src/product.ts`; never type it anywhere else in code or UI strings.
 
 ## Product
 
-Free, Arabic-first, 1v1 trivia game for Saudi Arabia. Two players are matched (nearest first, then nationwide),
-answer the same 10 questions under a server timer, and earn points. A monthly leaderboard ranks qualified players.
-Revenue: sponsored questions/campaigns, ads, corporate SaaS. Cash prizes (top 10, SAR 55,000/month by default) are
-BUILT but DISABLED behind a feature flag until legal clearance.
+Free, 18+ only, Arabic-first (then English, then Urdu) 1v1 trivia game for Saudi Arabia. Two players are matched
+(nearest first, then nationwide), answer the same 10 questions under a server timer, and earn points. A monthly
+leaderboard ranks qualified players. An engagement layer (XP levels, ranked ladder, daily loop, Mirror Challenge,
+later clubs and team modes) drives retention. Revenue: sponsored questions/campaigns, ads, corporate SaaS. Cash prizes
+(top 10 of Classic 1v1, SAR 55,000/month by default) are BUILT but DISABLED behind a feature flag until legal
+clearance.
 
-Source of truth: `docs/BRD.md` and `docs/REGULATORY.md`. Cite BR-/FR-/NFR- IDs in commits, PR descriptions and tests.
-Both are version 1.0 (30 Oct 2026). BRD section 8 lists the owner's open decisions; until one is closed, build the
-BRD default as configuration and do not invent values the documents do not give.
+Source of truth: `docs/BRD.md` (v1.1), `docs/REGULATORY.md`, `docs/ENGAGEMENT.md`. Cite BR-/FR-/NFR- IDs in commits,
+PR descriptions and tests. BRD section 8 lists the owner's open decisions; until one is closed, build the default as
+configuration and do not invent values the documents do not give.
 
-The build runs prompt by prompt from `docs/BUILD_PROMPTS.md`, one branch per prompt (`prompt-NN-<topic>`).
+The build runs prompt by prompt from `docs/BUILD_PROMPTS.md`, one branch per prompt (`prompt-NN-<topic>`). The prompts
+predate BRD v1.1: where they conflict (for example Prompt 3's phone-only sign-up and under-13 rule), BRD v1.1 and this
+file win.
 
 ## Stack
 
 - Monorepo: pnpm workspaces + Turborepo
 - `apps/api`: NestJS (TypeScript strict), modular monolith, REST + WebSocket (socket.io)
 - `apps/admin`: Next.js (App Router), Tailwind, RTL-first, admin + sponsor portals
-- `apps/mobile`: Flutter (stable), Riverpod, go_router, Arabic/English, RTL default
-- `packages/shared`: shared TS types, zod schemas, error codes
+- `apps/mobile`: Flutter (stable), Riverpod, go_router; locales ar (default), en, ur; RTL for ar/ur
+- `apps/web`: the web sample version (see "Web demo")
+- `packages/shared`: shared TS types, zod schemas, error codes; `packages/game`: game rules shared by web and API
 - PostgreSQL 16 + PostGIS; Prisma for schema/migrations, raw SQL for geo queries
 - Redis 7: matchmaking queues, sessions, leaderboards (sorted sets), rate limits, BullMQ jobs
-- Object storage: S3-compatible (RustFS locally; see decisions below)
-- Tests: Vitest (api and admin), Playwright (admin), flutter_test; k6 for load
+- Object storage: S3-compatible (RustFS locally; see stack decisions)
+- Tests: Vitest (api, admin, web, packages), Playwright (admin, web), flutter_test; k6 for load
 - Local: docker compose. Deploy: containers, Saudi cloud region, Terraform (provider-neutral)
 
 ## Architecture rules (do not break)
 
 1. The server is authoritative for timing, answers, scoring, ratings, eligibility and prizes. Never trust
    client-sent scores or timestamps.
-2. Score, points and prize records are append-only ledgers. Corrections are new entries with reason, actor and
-   approver. No UPDATE/DELETE on ledger tables.
-3. All writes that move points or money are idempotent (idempotency key) and transactional.
-4. Every business default in BRD sections 3-4 is configuration (config table + cache), not a constant in code.
-   Changes are audited.
+2. Score, points, XP, coin and prize records are append-only ledgers. Corrections are new entries with reason, actor
+   and approver. No UPDATE/DELETE on ledger tables.
+3. All writes that move points, XP, coins or money are idempotent and transactional.
+4. Every business default in BRD sections 3-4 and `docs/ENGAGEMENT.md` is configuration (config table + cache), not a
+   constant in code. Changes are audited.
 5. Feature flag `prizes.enabled` defaults to false in every environment. Prize endpoints must refuse to activate a
    campaign without an attached legal approval record. Never change this.
-6. No in-app wallet, stored value, purchasable points, paid attempts or paid entry. Points have no cash value.
-7. Personal data stays in the Saudi region. Location is used only for an active queue ticket, rounded to ~1 km, and
-   deleted when the match starts. Opponents see city + distance band only.
-8. Sponsors only ever see aggregated data. No personal data in sponsor reports or exports.
-9. Modules talk through service interfaces or domain events, never by reaching into another module's tables.
-10. External providers (SMS/OTP, KYC, push, ads, payouts) sit behind interfaces with a fake implementation for local
-    and test.
+6. No in-app wallet, stored value, purchasable points or coins, paid attempts, paid entry or paid random rewards.
+   Coins are earned only: never bought, gifted, traded, cashed or used as an entry fee. Points and XP have no cash
+   value.
+7. 18+ only. Identity comes from Nafath (verified date of birth); refuse under-18. One account per national ID /
+   Iqama number. The IBAN must be verified as owned by the same ID number before it becomes active (config
+   `identity.iban_required_at` = `signup` | `ranked` | `prize`, default `signup`). Prize payouts only by bank transfer
+   to that verified IBAN.
+8. Personal data stays in the Saudi region. Location is used only for an active queue ticket, rounded to ~1 km, and
+   deleted when the match starts. Opponents see city + distance band only. National ID and IBAN are field-encrypted
+   and never logged.
+9. Sponsors only ever see aggregated data. No personal data in sponsor reports or exports.
+10. Only Classic 1v1 ranked matches feed monthly ranked points and prizes. Engagement rewards, team modes and clubs
+    never change monthly points.
+11. Modules talk through service interfaces or domain events, never by reaching into another module's tables.
+12. External providers (Nafath, IBAN verification, SMS/OTP, push, ads, payouts) sit behind interfaces with a fake
+    implementation for local and test.
 
 ## API modules (`apps/api/src/modules`)
 
-identity, consent, content, matchmaking, match, rating, leaderboard, fraud, sponsor, ads, prize, config, audit,
-notification, analytics, admin
+identity, consent, content, matchmaking, match, rating, leaderboard, progression, club, modes, fraud, sponsor, ads,
+prize, config, audit, notification, analytics, admin
 
 ## Conventions
 
-- Arabic is the default locale; every user-facing string goes through i18n (ar, en).
+- Locales: ar (default), en, ur. Every user-facing string goes through i18n in all three. Urdu uses a Nastaliq font
+  (Noto Nastaliq Urdu) with increased line height.
+- Questions store text per language with a review status per language; a question is served in a language only when
+  that language version is approved (FR-29: Urdu by a native reviewer).
 - Errors: typed error codes from `packages/shared`; never leak stack traces.
-- Time: store UTC; month boundaries computed in Asia/Riyadh.
+- Time: store UTC; days and months computed in Asia/Riyadh.
 - Money: integer halalas (SAR x 100); never floats.
 - Migrations: one per change, reversible, with seed data for local only.
 - Tests: unit tests for all business rules; integration tests against docker Postgres/Redis; every BR-xx has at least
@@ -69,7 +86,7 @@ notification, analytics, admin
 ## Definition of done
 
 Lint + typecheck + tests pass; new config keys documented in `docs/CONFIG.md`; API changes in OpenAPI; audit log
-written for every admin action; no TODOs in money or scoring paths.
+written for every admin action; strings present in ar, en and ur; no TODOs in money, scoring or identity paths.
 
 ## Commands
 
@@ -97,8 +114,10 @@ written for every admin action; no TODOs in money or scoring paths.
   class-validator; validation here is zod). A test keeps both dictionaries' keys equal; the admin app has the same test.
 - **Environment vs configuration:** `src/core/env` validates infrastructure env vars only. Business defaults go to the
   `config` module (Prompt 10), never env vars.
-- **Mobile:** strings in `lib/l10n/app_{ar,en}.arb` (Arabic is the template); `appName` mirrors `PRODUCT` by hand
-  because Dart cannot import the TS constant.
+- **Mobile:** strings in `lib/l10n/app_{ar,en}.arb` (Arabic is the template; `app_ur.arb` still to add); `appName`
+  mirrors `PRODUCT` by hand because Dart cannot import the TS constant.
+- **Owner's CLAUDE.md of 2026-10-30** listed Jest and MinIO; the decisions above (Vitest, RustFS) stand because
+  Nest 12 is ESM-only and MinIO no longer publishes images.
 
 ## Web demo (owner decision, 2026-10-30)
 
@@ -114,6 +133,10 @@ written for every admin action; no TODOs in money or scoring paths.
   API must use the same package later, so rules are written once.
 - Wording: the UI never says "demo" or "test"; it says "Sample version" (نسخة تجريبية). Cash prizes appear only in
   the admin console, locked, as "planned".
+
+- **Not yet updated to BRD v1.1** (the demo was built on v1.0): sign-up is phone + OTP with an age gate at 13/18
+  instead of Nafath 18+ with a verified IBAN (FR-01, FR-04); no Urdu (FR-29); no engagement layer (FR-30: XP levels,
+  ladder, daily claim, streak, Mirror Challenge, missions, badges).
 
 ## Progress
 

@@ -1,6 +1,6 @@
 # Quiz & Rewards Platform — Business Requirements Document
 
-Version 1.0 · 30 Oct 2026 · AlgoNova Technologies
+Version 1.1 · 30 Oct 2026 · AlgoNova Technologies (v1.1: 18+ for all users via Nafath, verified IBAN, Urdu, engagement layer — see docs/ENGAGEMENT.md)
 
 This BRD turns the owner's concept — free 1v1 location-matched trivia, ten questions per match, a monthly top-10 leaderboard paying SAR 55,000 — into buildable, testable requirements. Cash prizes are designed in but switched off until legal clearance (see docs/REGULATORY.md).
 
@@ -21,7 +21,7 @@ The MVP is a secure, Arabic-first 1v1 trivia game with sponsors and a monthly le
 Decisions this BRD takes as given (owner to confirm in section 8):
 
 - Participation is free. No purchase, paid attempt or paid advantage affects prize eligibility.
-- Cash-prize eligibility at launch is limited to Saudi residents aged 18+ with verified identity and a Saudi IBAN.
+- The whole app is 18+. Sign-up is through Nafath (citizens and Iqama holders), which supplies a verified date of birth. A Saudi IBAN owned by the same ID number is verified at sign-up by default (configurable to before ranked play or before prizes). Prize payouts go only by bank transfer to that IBAN.
 - The legal organizer of any prize competition is a Saudi CR holder appointed by the owner, not AlgoNova.
 - All scoring, timing and ranking are computed on the server. The client app is never trusted for results.
 - Prize rules, amounts and schedule are configuration, not code. SAR 55,000 is a default value, not hard-coded.
@@ -42,7 +42,7 @@ Decisions this BRD takes as given (owner to confirm in section 8):
 
 End-to-end journey (happy path):
 
-1. Player installs the app and registers with a Saudi mobile number (OTP), display name, date of birth and consents.
+1. Player installs the app, picks a language (Arabic default, English, Urdu) and signs up with Nafath; under-18s are refused. They add a Saudi mobile number (OTP), a display name, a Saudi IBAN (verified against their ID number) and consents.
 2. Player optionally grants approximate location while matching; declining keeps nationwide matching.
 3. Player taps Play; the system places a queue ticket and finds an eligible opponent (section 4).
 4. Both players confirm; the server assigns one fixed set of 10 questions, which may include up to 2 labelled sponsor questions.
@@ -109,36 +109,38 @@ Location rules:
 
 Priority: **M** = MVP must-have, **C** = MVP but behind a feature flag, **L** = later release.
 
-| ID    | Module        | Requirement                                                                                 | Pri       | Acceptance criterion                                           |
-| ----- | ------------- | ------------------------------------------------------------------------------------------- | --------- | -------------------------------------------------------------- |
-| FR-01 | Identity      | Register with Saudi mobile + OTP; display name; date of birth                               | M         | Under-13 blocked; under-18 flagged non-prize-eligible          |
-| FR-02 | Identity      | Record each consent (terms, privacy, location, marketing) with version and timestamp        | M         | Consent history exportable per user                            |
-| FR-03 | Identity      | Self-service account deletion and data export                                               | M         | Deletion completes in 30 days; audit entry kept                |
-| FR-04 | Identity      | Prize KYC: national ID/Iqama verification and IBAN capture                                  | C         | Name on IBAN matches verified identity                         |
-| FR-05 | Matchmaking   | Queue, widen search by wait time (section 4), cancel, timeout                               | M         | Median wait < 30 s in beta                                     |
-| FR-06 | Gameplay      | Synchronised 10-question match over WebSocket with server timer                             | M         | Both clients receive each question within 300 ms of each other |
-| FR-07 | Gameplay      | Reconnect within grace period resumes the match                                             | M         | Drop of < 20 s does not forfeit                                |
-| FR-08 | Gameplay      | Result screen: score, monthly points earned, rating change, rematch, share                  | M         | Values match server ledger                                     |
-| FR-09 | Gameplay      | Practice / unranked mode, including asynchronous opponent                                   | M         | Practice never affects monthly score                           |
-| FR-10 | Leaderboard   | Monthly, all-time and friends views; my position and gap to top 10                          | M         | Updates within 60 s of a match                                 |
-| FR-11 | Leaderboard   | Month close job: freeze, fraud review queue, provisional and final results                  | M         | Runs automatically; re-runnable without double counting        |
-| FR-12 | Content       | Question bank: category, difficulty, Arabic/English text, answers, source reference, expiry | M         | No question published without reviewer approval                |
-| FR-13 | Content       | Two-step workflow: draft → review → published → retired; version history                    | M         | Edits after publishing create a new version                    |
-| FR-14 | Content       | Player can report a question; dispute queue; void and re-score                              | M         | Re-score updates monthly points and ranks                      |
-| FR-15 | Content       | Bulk import (CSV) and AI-assisted drafting for editors                                      | L         | Drafts always require human review                             |
-| FR-16 | Sponsors      | Sponsor record, campaign dates, budget, targeting (city, category), questions, creative     | M         | Campaign cannot go live without internal approval              |
-| FR-17 | Sponsors      | Sponsor report: impressions, answers, correct %, completion, city split (aggregated)        | M         | No personal data shown to sponsors                             |
-| FR-18 | Sponsors      | Sponsor self-service portal with payment                                                    | L         | —                                                              |
-| FR-19 | Ads           | Rewarded video (e.g. extra practice), interstitial between matches, frequency caps          | M         | Never inside a ranked match; max 1 interstitial per 3 matches  |
-| FR-20 | Prizes        | Prize campaign: rules text, permit number, dates, pool, rank table, eligibility             | C         | Cannot activate without legal approval record attached         |
-| FR-21 | Prizes        | Winner verification, payout batch, 4-eyes approval, bank file, proof of payment             | C         | Officer and approver must be different users                   |
-| FR-22 | Prizes        | Prize liability ledger: accrued, approved, paid, forfeited                                  | C         | Reconciles to bank statement monthly                           |
-| FR-23 | Corporate     | Private tenant: company branding, private question sets, employee leaderboard               | L (pilot) | Tenant data isolated from public game                          |
-| FR-24 | Notifications | Push for match found, month close, results, campaign launches                               | M         | Opt-out per type                                               |
-| FR-25 | Admin         | RBAC with the roles in section 2; MFA for all admin users                                   | M         | Every admin action in audit log                                |
-| FR-26 | Admin         | Fraud console: risk score, evidence, suspend, appeal decision                               | M         | Decisions recorded with reason                                 |
-| FR-27 | Admin         | Feature flags and configuration for every default in sections 3–4                           | M         | Change requires reason; logged                                 |
-| FR-28 | Support       | In-app help, ticket form, FAQ, complaint log with SLA timer                                 | M         | First response < 1 business day                                |
+| ID    | Module        | Requirement                                                                                                                                                            | Pri       | Acceptance criterion                                                                       |
+| ----- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------ |
+| FR-01 | Identity      | Sign up with Nafath (national ID/Iqama, verified date of birth) plus Saudi mobile OTP and display name                                                                 | M         | Under-18 refused; one account per ID number                                                |
+| FR-02 | Identity      | Record each consent (terms, privacy, location, marketing) with version and timestamp                                                                                   | M         | Consent history exportable per user                                                        |
+| FR-03 | Identity      | Self-service account deletion and data export                                                                                                                          | M         | Deletion completes in 30 days; audit entry kept                                            |
+| FR-04 | Identity      | IBAN capture and ownership verification against the Nafath ID number; required at sign-up by default (config: signup / ranked / prize). MVP, not behind the prize flag | M         | IBAN accepted only when the verification service confirms it belongs to the same ID number |
+| FR-05 | Matchmaking   | Queue, widen search by wait time (section 4), cancel, timeout                                                                                                          | M         | Median wait < 30 s in beta                                                                 |
+| FR-06 | Gameplay      | Synchronised 10-question match over WebSocket with server timer                                                                                                        | M         | Both clients receive each question within 300 ms of each other                             |
+| FR-07 | Gameplay      | Reconnect within grace period resumes the match                                                                                                                        | M         | Drop of < 20 s does not forfeit                                                            |
+| FR-08 | Gameplay      | Result screen: score, monthly points earned, rating change, rematch, share                                                                                             | M         | Values match server ledger                                                                 |
+| FR-09 | Gameplay      | Practice / unranked mode, including asynchronous opponent                                                                                                              | M         | Practice never affects monthly score                                                       |
+| FR-10 | Leaderboard   | Monthly, all-time and friends views; my position and gap to top 10                                                                                                     | M         | Updates within 60 s of a match                                                             |
+| FR-11 | Leaderboard   | Month close job: freeze, fraud review queue, provisional and final results                                                                                             | M         | Runs automatically; re-runnable without double counting                                    |
+| FR-12 | Content       | Question bank: category, difficulty, Arabic/English text, answers, source reference, expiry                                                                            | M         | No question published without reviewer approval                                            |
+| FR-13 | Content       | Two-step workflow: draft → review → published → retired; version history                                                                                               | M         | Edits after publishing create a new version                                                |
+| FR-14 | Content       | Player can report a question; dispute queue; void and re-score                                                                                                         | M         | Re-score updates monthly points and ranks                                                  |
+| FR-15 | Content       | Bulk import (CSV) and AI-assisted drafting for editors                                                                                                                 | L         | Drafts always require human review                                                         |
+| FR-16 | Sponsors      | Sponsor record, campaign dates, budget, targeting (city, category), questions, creative                                                                                | M         | Campaign cannot go live without internal approval                                          |
+| FR-17 | Sponsors      | Sponsor report: impressions, answers, correct %, completion, city split (aggregated)                                                                                   | M         | No personal data shown to sponsors                                                         |
+| FR-18 | Sponsors      | Sponsor self-service portal with payment                                                                                                                               | L         | —                                                                                          |
+| FR-19 | Ads           | Rewarded video (e.g. extra practice), interstitial between matches, frequency caps                                                                                     | M         | Never inside a ranked match; max 1 interstitial per 3 matches                              |
+| FR-20 | Prizes        | Prize campaign: rules text, permit number, dates, pool, rank table, eligibility                                                                                        | C         | Cannot activate without legal approval record attached                                     |
+| FR-21 | Prizes        | Winner verification, payout batch, 4-eyes approval, bank file, proof of payment                                                                                        | C         | Officer and approver must be different users                                               |
+| FR-22 | Prizes        | Prize liability ledger: accrued, approved, paid, forfeited                                                                                                             | C         | Reconciles to bank statement monthly                                                       |
+| FR-23 | Corporate     | Private tenant: company branding, private question sets, employee leaderboard                                                                                          | L (pilot) | Tenant data isolated from public game                                                      |
+| FR-24 | Notifications | Push for match found, month close, results, campaign launches                                                                                                          | M         | Opt-out per type                                                                           |
+| FR-25 | Admin         | RBAC with the roles in section 2; MFA for all admin users                                                                                                              | M         | Every admin action in audit log                                                            |
+| FR-26 | Admin         | Fraud console: risk score, evidence, suspend, appeal decision                                                                                                          | M         | Decisions recorded with reason                                                             |
+| FR-27 | Admin         | Feature flags and configuration for every default in sections 3–4                                                                                                      | M         | Change requires reason; logged                                                             |
+| FR-28 | Support       | In-app help, ticket form, FAQ, complaint log with SLA timer                                                                                                            | M         | First response < 1 business day                                                            |
+| FR-29 | Localisation  | Urdu as the third language (after Arabic default and English) for app, notifications and questions; RTL with Nastaliq font                                             | M         | Every Urdu question approved by a native Urdu reviewer before it is served in Urdu         |
+| FR-30 | Engagement    | Engagement layer per docs/ENGAGEMENT.md: XP levels, ranked ladder, daily claim, streak, Mirror Challenge, missions, badges (MVP); clubs and team modes (Phases 2–3)    | M / L     | Engagement rewards never affect monthly ranked points or prizes                            |
 
 ## 6. Sponsor, advertising and prize workflows
 
@@ -168,20 +170,20 @@ The workflow must also support the narrower model the regulator may require, suc
 
 ## 7. Non-functional requirements and pilot KPIs
 
-| ID     | Area          | Requirement                                                                                            |
-| ------ | ------------- | ------------------------------------------------------------------------------------------------------ |
-| NFR-01 | Performance   | P95 API latency < 300 ms in Saudi region; answer acknowledgement < 150 ms                              |
-| NFR-02 | Scale         | Load-tested at 1,000 concurrent matches (2,000 players) before launch; auto-scaling to 5,000           |
-| NFR-03 | Availability  | 99.9% monthly after stabilisation; month-close job has a tested rerun procedure                        |
-| NFR-04 | Recovery      | RPO 15 min, RTO 4 h; daily backups kept 35 days; quarterly restore test                                |
-| NFR-05 | Hosting       | Personal data hosted in a Saudi cloud region; any transfer abroad documented (PDPL)                    |
-| NFR-06 | Security      | TLS 1.2+, encryption at rest, secrets vault, WAF, rate limits, MFA for admins, OWASP MASVS for the app |
-| NFR-07 | Assurance     | SAST/DAST in CI; external penetration test before launch and before prize activation                   |
-| NFR-08 | Integrity     | Score and prize ledgers append-only; idempotent writes; server-signed match events                     |
-| NFR-09 | Privacy       | Data minimisation, retention schedule, consent records, breach response within 72 h to SDAIA           |
-| NFR-10 | Usability     | Arabic RTL first; accessible contrast and font scaling; works on 3G with resume                        |
-| NFR-11 | Observability | Central logs, metrics and alerts; cloud spend alerts; fraud dashboard                                  |
-| NFR-12 | Age rating    | Store and GAMR age rating set before launch; 18+ gate for prize features                               |
+| ID     | Area          | Requirement                                                                                                                                        |
+| ------ | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| NFR-01 | Performance   | P95 API latency < 300 ms in Saudi region; answer acknowledgement < 150 ms                                                                          |
+| NFR-02 | Scale         | Load-tested at 1,000 concurrent matches (2,000 players) before launch; auto-scaling to 5,000                                                       |
+| NFR-03 | Availability  | 99.9% monthly after stabilisation; month-close job has a tested rerun procedure                                                                    |
+| NFR-04 | Recovery      | RPO 15 min, RTO 4 h; daily backups kept 35 days; quarterly restore test                                                                            |
+| NFR-05 | Hosting       | Personal data hosted in a Saudi cloud region; any transfer abroad documented (PDPL)                                                                |
+| NFR-06 | Security      | TLS 1.2+, encryption at rest, secrets vault, WAF, rate limits, MFA for admins, OWASP MASVS for the app                                             |
+| NFR-07 | Assurance     | SAST/DAST in CI; external penetration test before launch and before prize activation                                                               |
+| NFR-08 | Integrity     | Score and prize ledgers append-only; idempotent writes; server-signed match events                                                                 |
+| NFR-09 | Privacy       | Data minimisation, retention schedule, consent records, breach response within 72 h to SDAIA                                                       |
+| NFR-10 | Usability     | Arabic (default), English and Urdu; RTL for Arabic and Urdu, Nastaliq font for Urdu; accessible contrast and font scaling; works on 3G with resume |
+| NFR-11 | Observability | Central logs, metrics and alerts; cloud spend alerts; fraud dashboard                                                                              |
+| NFR-12 | Age rating    | Store and GAMR age rating set before launch; 18+ gate for prize features                                                                           |
 
 Pilot KPIs that decide whether to scale (Gate G2/G3):
 

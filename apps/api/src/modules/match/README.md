@@ -4,4 +4,4 @@ The real-time match engine over socket.io: server-timed questions, answer intake
 
 - **BRD IDs:** FR-06, FR-07, FR-08, FR-09, BR-01, BR-02, BR-03, BR-11, BR-12, NFR-01, NFR-08
 - **Built in:** Prompt 6 (`docs/BUILD_PROMPTS.md`)
-- **Talks to other modules** only through their exported services or domain events (architecture rule 9).
+- **Talks to other modules** only through their exported services or domain events (architecture rule 11).
