@@ -13,8 +13,8 @@ Revenue: sponsored questions/campaigns, ads, corporate SaaS. Cash prizes (top 10
 BUILT but DISABLED behind a feature flag until legal clearance.
 
 Source of truth: `docs/BRD.md` and `docs/REGULATORY.md`. Cite BR-/FR-/NFR- IDs in commits, PR descriptions and tests.
-**Status:** both documents are still to be added by the owner. Until they are, do not invent requirement text or
-business values; anything that needs them is marked `TODO(BRD)`.
+Both are version 1.0 (30 Oct 2026). BRD section 8 lists the owner's open decisions; until one is closed, build the
+BRD default as configuration and do not invent values the documents do not give.
 
 The build runs prompt by prompt from `docs/BUILD_PROMPTS.md`, one branch per prompt (`prompt-NN-<topic>`).
 
