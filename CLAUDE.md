@@ -100,6 +100,19 @@ written for every admin action; no TODOs in money or scoring paths.
 - **Mobile:** strings in `lib/l10n/app_{ar,en}.arb` (Arabic is the template); `appName` mirrors `PRODUCT` by hand
   because Dart cannot import the TS constant.
 
+## Web demo (owner decision, 2026-10-30)
+
+- The owner presents the product with a **web demo on Vercel** before the full build: `apps/web`, described in
+  `docs/DEMO.md`, deployed per `docs/DEPLOY_VERCEL.md`. Player app at `/play`, admin console at `/admin`.
+- It runs in the browser on sample data (`localStorage`, key `quizate-demo-v1`); no server, no real personal data.
+  Every screen carries the "Sample version" chip. Opponents are sample players; real 1v1 needs the match server.
+- Game modes: ranked 1v1 (counts for monthly points), practice vs bot (free, unranked), speed round (unranked).
+- **Game rules live in `packages/game`** (pure TypeScript, tests named after BR IDs). The demo uses them now and the
+  API must use the same package later, so rules are written once.
+- Wording: the UI never says "demo" or "test"; it says "Sample version" (نسخة تجريبية). Cash prizes appear only in
+  the admin console, locked, as "planned".
+
 ## Progress
 
 - [x] Prompt 1 — monorepo scaffold and local infrastructure (branch `prompt-01-scaffold`)
+- [x] Web demo — `packages/game` and `apps/web` (branch `demo-web`)
