@@ -8,6 +8,7 @@ import { useT } from '@/i18n';
 import { useStore } from '@/lib/store';
 import type { Question } from '@/lib/types';
 import type { BiText } from '@/data/questions';
+import { QuestionImage } from '@/components/QuestionImage';
 
 const FEEDBACK_MS = 350;
 
@@ -63,8 +64,8 @@ export default function SpeedPage() {
   }, [phase]);
 
   useEffect(() => {
-    if (phase === 'done') dispatch({ type: 'speedBest', score: correct });
-  }, [phase, correct, dispatch]);
+    if (phase === 'done') dispatch({ type: 'speedFinished', correct, answered });
+  }, [phase, correct, answered, dispatch]);
 
   const answer = useCallback(
     (opt: number) => {
@@ -135,6 +136,7 @@ export default function SpeedPage() {
             <div className="mb-2 flex justify-end">
               {card.q.sponsored && <Badge tone="gold">{d.common.sponsored}</Badge>}
             </div>
+            <QuestionImage id={card.q.image} className="mb-3" />
             <h2 className="mb-4 text-lg font-bold leading-relaxed">{pick(card.q.text)}</h2>
             <div className="grid gap-2.5">
               {card.order.map((opt, pos) => {

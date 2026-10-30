@@ -48,6 +48,22 @@ None yet. Each prompt that adds a key lists it here with its BRD source, default
 | --------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `identity.iban_required_at` | `signup` | `signup` \| `ranked` \| `prize`: when a verified IBAN (same ID number as Nafath) is required. BRD v1.1 FR-04; ENGAGEMENT.md suggests `ranked` if sign-up completion falls below 60%. |
 
+## Engagement configuration (`packages/game/src/engagement.ts`, FR-30)
+
+| Key                                               | Default                                                        | Source              |
+| ------------------------------------------------- | -------------------------------------------------------------- | ------------------- |
+| `xp.rankedBase` / `xp.perCorrect` / `xp.winBonus` | 20 / 2 / 15                                                    | ENGAGEMENT.md §3    |
+| `xp.practice` / `xp.practiceDailyCap`             | 10 / 200 per day                                               | ENGAGEMENT.md §3    |
+| `xp.mirror`                                       | 30, once a day                                                 | ENGAGEMENT.md §3    |
+| `xp.bonusDailyCap`                                | 300 per day (missions, daily claim, question of the day, road) | ENGAGEMENT.md §3    |
+| `xp.questionOfDay`                                | 5                                                              | sample ("small XP") |
+| `levels.perLevel` / `levels.max`                  | 100 × n per level / 100                                        | ENGAGEMENT.md §3    |
+| `ladder.tiers`                                    | 0, 300, 800, 1,500, 2,500, 3,500, 4,500; Elite = top 100       | ENGAGEMENT.md §3    |
+| `ladder.divisions`                                | 3                                                              | ENGAGEMENT.md §3    |
+| `claim` (7 days)                                  | coins 10–60, XP 10–30, frame on day 7                          | sample amounts      |
+| `streakShieldsAt`                                 | 7 and 30 days                                                  | ENGAGEMENT.md §4    |
+| `missionsPerDay`                                  | 3                                                              | ENGAGEMENT.md §4    |
+
 ## Feature flags
 
 | Flag             | Default                      | Who may change it                                                                                       |

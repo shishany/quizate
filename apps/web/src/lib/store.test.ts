@@ -10,6 +10,8 @@ const player: Player = {
   name: 'Tester',
   phoneMasked: '+966 5•• ••• 123',
   birthDate: '1990-01-01',
+  nationalIdMasked: '1•••••••78',
+  iban: null,
   cityId: 'riyadh',
   rating: 1200,
   createdAt: '2026-10-01T00:00:00Z',
@@ -188,5 +190,89 @@ describe('admin actions', () => {
   it('the prize flag cannot be reached through configuration', () => {
     const s = initialState();
     expect(JSON.stringify(s.config)).not.toMatch(/enabled/);
+  });
+});
+
+describe('FR-30 engagement', () => {
+  it('rule 10: XP from a ranked match never changes monthly points', () => {
+    const s = signedIn();
+    const action = settle(s, match(s));
+    expect(action.xp?.amount).toBe(20 + 2 * 8 + 15);
+    const next = reducer(s, action);
+    expect(next.xp).toHaveLength(1);
+    expect(next.myResults[0]?.score).toBe(80);
+    expect(action.summary.monthlyPoints).toBe(80);
+  });
+
+  it('practice XP stops at the daily cap of 200', () => {
+    let s = signedIn();
+    for (let k = 0; k < 25; k++)
+      s = reducer(s, settle(s, match(s, { mode: 'practice', id: `p${k}` })));
+    expect(s.xp.reduce((t, e) => t + e.amount, 0)).toBe(200);
+  });
+
+  it('a forfeit earns no XP and does not count as an active day', () => {
+    const s = signedIn();
+    const next = reducer(s, settle(s, match(s, { forfeit: true })));
+    expect(next.xp).toHaveLength(0);
+    expect(next.activeDays).toHaveLength(0);
+  });
+
+  it('daily claim pays once a day, in coins and XP', () => {
+    let s = reducer(signedIn(), { type: 'claimDaily' });
+    s = reducer(s, { type: 'claimDaily' });
+    expect(s.coins).toHaveLength(1);
+    expect(s.lastClaim?.index).toBe(0);
+  });
+
+  it('a mission can only be claimed once its target is met', () => {
+    const s = signedIn();
+    const before = reducer(s, { type: 'claimMission', id: 'mirror' });
+    expect(before.missionClaims).toHaveLength(0);
+  });
+
+  it('partner gifts on the road are shown but never granted; coins are', () => {
+    let s = signedIn();
+    s = reducer(s, { type: 'claimRoad', nodeId: 'capable-3' });
+    expect(s.coins.reduce((t, e) => t + e.amount, 0)).toBe(100);
+    expect(s.cosmetics).toHaveLength(0);
+    s = reducer(s, { type: 'claimRoad', nodeId: 'capable-3' });
+    expect(s.coins).toHaveLength(1);
+  });
+
+  it('FR-04: only the super admin changes when the IBAN is required, with a reason', () => {
+    let s = reducer(signedIn(), { type: 'ibanRequiredAt', value: 'ranked', reason: 'x' });
+    expect(s.ibanRequiredAt).toBe('signup');
+    s = reducer(reducer(s, { type: 'adminSignIn', role: 'super_admin' }), {
+      type: 'ibanRequiredAt',
+      value: 'ranked',
+      reason: 'Completion below 60%',
+    });
+    expect(s.ibanRequiredAt).toBe('ranked');
+    expect(s.audit[0]).toMatchObject({
+      entity: 'identity.iban_required_at',
+      before: 'signup',
+      after: 'ranked',
+    });
+  });
+});
+
+describe('accounts on this device', () => {
+  it('signing out keeps the account so the player can sign in again', () => {
+    let s = signedIn();
+    s = reducer(s, { type: 'signOut' });
+    expect(s.player).toBeNull();
+    expect(s.savedAccount?.name).toBe('Tester');
+    s = reducer(s, { type: 'restoreAccount' });
+    expect(s.player?.name).toBe('Tester');
+  });
+
+  it('image questions are in the bank, and brand logo questions are sponsored', () => {
+    const s = initialState();
+    const images = s.questions.filter((q) => q.image);
+    expect(images.filter((q) => q.image?.startsWith('flag-')).length).toBeGreaterThanOrEqual(5);
+    expect(
+      images.filter((q) => q.image?.startsWith('logo-')).every((q) => q.sponsored && q.campaignId),
+    ).toBe(true);
   });
 });

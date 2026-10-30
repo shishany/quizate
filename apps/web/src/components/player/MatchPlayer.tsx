@@ -8,6 +8,8 @@ import { cityById } from '@/lib/sample';
 import { useStore } from '@/lib/store';
 import type { BiText } from '@/data/questions';
 import type { Question } from '@/lib/types';
+import { QuestionImage } from '@/components/QuestionImage';
+import { SponsorMessage } from '@/components/player/SponsorMessage';
 
 export interface Opponent {
   id: string;
@@ -47,7 +49,7 @@ export function MatchPlayer({
   onDone: (outcome: MatchOutcome) => void;
 }) {
   const { state } = useStore();
-  const { d, fill, num, pick } = useT();
+  const { d, fill, num, pick, locale } = useT();
   const cfg = state.config;
   const limitMs = cfg.questionSeconds * 1000;
 
@@ -247,8 +249,14 @@ export function MatchPlayer({
               />
             </div>
           </div>
+          <QuestionImage id={q.image} className="mb-3" />
           <h2 className="mb-4 min-h-[3.5rem] text-lg font-bold leading-relaxed sm:text-xl">
             {pick(q.text)}
+            {locale === 'ur' && !q.text.ur && (
+              <span className="mt-1 block text-xs font-normal text-muted">
+                {d.common.urduPending}
+              </span>
+            )}
           </h2>
           <div className="grid gap-2.5">
             {(orders[index] ?? []).map((opt, pos) => {
@@ -287,6 +295,7 @@ export function MatchPlayer({
           {phase === 'reveal' && !myAnswer?.option && myAnswer?.option !== 0 && (
             <p className="mt-3 text-sm font-medium text-warn">{d.match.timeUp}</p>
           )}
+          {phase === 'reveal' && <SponsorMessage campaignId={q.campaignId} />}
         </div>
       )}
     </div>

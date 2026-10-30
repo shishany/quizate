@@ -7,7 +7,7 @@ import type {
 } from '@quizate/game';
 import type { BiText, Category } from '@/data/questions';
 
-export type Locale = 'ar' | 'en';
+export type Locale = 'ar' | 'en' | 'ur';
 export type Mode = 'ranked' | 'practice' | 'speed';
 
 export interface Question extends SelectableQuestion {
@@ -19,6 +19,8 @@ export interface Question extends SelectableQuestion {
   authorId: string;
   reviewerId: string | null;
   campaignId: string | null;
+  /** Image questions: key into QUESTION_IMAGES. */
+  image?: string;
   reports: number;
   history: { at: string; actor: string; action: QuestionAction; version: number }[];
 }
@@ -48,7 +50,12 @@ export interface Player {
   name: string;
   /** Masked for display, e.g. +966 5•• ••• 123. The full number is not kept. */
   phoneMasked: string;
+  /** From Nafath (FR-01): verified date of birth. */
   birthDate: string;
+  /** National ID / Iqama, masked; the full number is never kept in the sample. */
+  nationalIdMasked: string;
+  /** FR-04: Saudi IBAN verified as owned by the same ID number; masked. */
+  iban: { masked: string; verifiedAt: string } | null;
   cityId: string;
   rating: number;
   createdAt: string;
@@ -60,6 +67,8 @@ export interface Player {
 }
 
 export interface MatchSummary {
+  /** XP earned (FR-30); never monthly points. */
+  xp?: number;
   id: string;
   mode: Mode;
   at: string;
@@ -82,6 +91,23 @@ export interface MatchSummary {
   forfeit: boolean;
   /** Speed round: answered in the time limit. */
   answered?: number;
+}
+
+export type XpSource = 'ranked' | 'practice' | 'mirror' | 'mission' | 'claim' | 'qotd' | 'road';
+
+export interface LedgerEntry {
+  at: string;
+  source: XpSource;
+  amount: number;
+  ref?: string;
+}
+
+export interface MirrorResult {
+  at: string;
+  score: number;
+  /** Total answer time, ms (the daily board's tie-break). */
+  timeMs: number;
+  grid: boolean[];
 }
 
 export type FraudSignal =
@@ -145,6 +171,8 @@ export interface DemoState {
   fraud: FraudFlag[];
   audit: AuditEntry[];
   adminRole: AdminRole | null;
+  /** The account kept on this device after signing out, so the player can sign in again. */
+  savedAccount: Player | null;
   /** A ranked match in progress. Left behind (navigation, refresh, closed tab), it is settled as a forfeit (BR-11). */
   activeRanked: {
     id: string;
@@ -152,6 +180,22 @@ export interface DemoState {
     opponent: NonNullable<MatchSummary['opponent']>;
     ratingBefore: number;
   } | null;
+  /** FR-30 ledgers (append-only): XP and earned-only coins. */
+  xp: LedgerEntry[];
+  coins: LedgerEntry[];
+  /** Riyadh days with a completed match or Mirror Challenge (streaks). */
+  activeDays: string[];
+  lastClaim: { day: string; index: number } | null;
+  mirror: Record<string, MirrorResult>;
+  questionOfDay: Record<string, { correct: boolean }>;
+  /** `${day}:${missionId}` */
+  missionClaims: string[];
+  /** `${month}:${nodeId}` */
+  roadClaims: string[];
+  cosmetics: string[];
+  equipped: { frame: string | null; title: string | null };
+  /** Config `identity.iban_required_at` (FR-04). */
+  ibanRequiredAt: 'signup' | 'ranked' | 'prize';
   /** Sponsored answers given by this player: city → counts. */
   sponsorTally: { impressions: number; answers: number; correct: number };
 }

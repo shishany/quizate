@@ -134,9 +134,24 @@ written for every admin action; strings present in ar, en and ur; no TODOs in mo
 - Wording: the UI never says "demo" or "test"; it says "Sample version" (نسخة تجريبية). Cash prizes appear only in
   the admin console, locked, as "planned".
 
-- **Not yet updated to BRD v1.1** (the demo was built on v1.0): sign-up is phone + OTP with an age gate at 13/18
-  instead of Nafath 18+ with a verified IBAN (FR-01, FR-04); no Urdu (FR-29); no engagement layer (FR-30: XP levels,
-  ladder, daily claim, streak, Mirror Challenge, missions, badges).
+- **Updated to BRD v1.1 (2026-10-30):**
+  - Sign-up: sample Nafath (ID → number match → verified date of birth; IDs ending in 9 show the under-18 refusal),
+    mobile + code `000000`, display name, IBAN with mod-97 check and simulated ownership verification (FR-01, FR-04;
+    `identity.iban_required_at` editable in admin), consents. Signing out keeps the account on the device; the
+    Sign in tab restores it (mobile + code, or Nafath ID).
+  - Admin: one click into the console as super admin; other roles optional (production needs password + 2FA).
+  - Urdu (FR-29): full UI dictionary `src/i18n/ur.ts` (draft, needs a native reviewer before go-live), Nastaliq font;
+    questions show in Arabic with an "awaiting Urdu review" note until a reviewed Urdu text exists.
+  - Engagement (FR-30): rules in `packages/game/src/engagement.ts` (XP, levels, ladder, streak + shields, daily
+    claim, day seed); web helpers in `apps/web/src/lib/engagement.ts` (missions, badges, cosmetics, ladder road).
+    Home: level/XP/coins/streak, daily claim, Mirror Challenge, missions, question of the day. `/play/ladder` is the
+    road with rewards per division; `/play/mirror` the daily challenge. Elite = top 100 among players who reached
+    the highest points tier (our reading; a 41-player sample would otherwise make everyone elite).
+  - Partner gifts appear on the road locked: REGULATORY.md treats vouchers and products as prizes under the
+    commercial-competition rules, so they wait for partner campaigns and legal approval. Coins and cosmetics work.
+  - Image questions (`image` key, drawings in `src/data/images.tsx`): flags, and logo questions for fictional
+    sample sponsors (`src/data/sponsors.ts`) that show the sponsor's message after the reveal. Real brands only with
+    the brand's approval and its own uploaded logo.
 
 ## Progress
 

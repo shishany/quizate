@@ -3,30 +3,58 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { monthFreezeAt, rankedAllowed, rankedLeftToday } from '@quizate/game';
+import {
+  DailyClaim,
+  EngagementBar,
+  MirrorCard,
+  Missions,
+  QuestionOfDay,
+  useEngagement,
+} from '@/components/player/engagement';
 import { Badge, Card, Notice, Progress, Stat } from '@/components/ui';
 import { useT } from '@/i18n';
+import { ENG, ROMAN } from '@/lib/engagement';
 import { useBoard } from '@/lib/standings';
 import { useStore } from '@/lib/store';
 
 export default function Home() {
   const { state } = useStore();
-  const { d, fill, num, date } = useT();
+  const { d, fill, num, date, pick } = useT();
   const { me } = useBoard();
+  const e = useEngagement();
   const cfg = state.config;
   const now = new Date();
   const history = state.myResults.map((r) => ({ at: r.at, opponentId: r.opponentId }));
-  const allowed = rankedAllowed(history, state.abandons, now, cfg);
+  const limits = rankedAllowed(history, state.abandons, now, cfg);
+  const needsIban = state.ibanRequiredAt === 'ranked' && !state.player?.iban;
   const left = rankedLeftToday(history, now, cfg);
+  const tier = ENG.ladder.tiers[e.ladder.tierIndex];
+  const blocked = needsIban
+    ? d.home.ibanNeeded
+    : !limits.ok
+      ? limits.reason === 'DAILY_LIMIT'
+        ? d.home.dailyLimit
+        : fill(d.home.abandonBlock, { time: date(limits.resetsAt, true) })
+      : null;
 
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">
         {fill(d.home.greeting, { name: state.player?.name ?? '' })}
       </h1>
+      <EngagementBar />
+      <DailyClaim />
 
       <Card
         title={d.home.monthTitle}
-        action={me?.eligible ? <Badge tone="ok">{d.home.eligible}</Badge> : null}
+        action={
+          <Link
+            href="/play/ladder"
+            className="rounded-full bg-gold/15 px-3 py-1 text-xs font-bold text-gold-ink hover:bg-gold/25"
+          >
+            {tier ? pick(tier.name) : ''} {e.ladder.division ? ROMAN[e.ladder.division] : ''}
+          </Link>
+        }
       >
         <div className="grid grid-cols-2 gap-2">
           <Stat
@@ -46,8 +74,16 @@ export default function Home() {
             </div>
             <Progress value={me?.counted ?? 0} max={cfg.monthlyCap} label={d.home.cap} />
           </div>
-          {!me?.eligible && (
+          {me?.eligible ? (
+            <Badge tone="ok">{d.home.eligible}</Badge>
+          ) : (
             <>
+              <p className="text-xs text-muted">
+                {fill(d.home.notEligible, {
+                  m: num(cfg.eligibility.minMatches),
+                  o: num(cfg.eligibility.minOpponents),
+                })}
+              </p>
               <div>
                 <div className="mb-1 flex justify-between">
                   <span>{d.home.counted}</span>
@@ -78,12 +114,6 @@ export default function Home() {
                   label={d.home.opponents}
                 />
               </div>
-              <p className="text-xs text-muted">
-                {fill(d.home.notEligible, {
-                  m: num(cfg.eligibility.minMatches),
-                  o: num(cfg.eligibility.minOpponents),
-                })}
-              </p>
             </>
           )}
         </div>
@@ -96,15 +126,10 @@ export default function Home() {
         meta={fill(d.home.rankedLeft, { n: num(left), max: num(cfg.dailyRankedLimit) })}
         href="/play/ranked"
         accent="brand"
-        disabled={!allowed.ok}
-        blocked={
-          !allowed.ok
-            ? allowed.reason === 'DAILY_LIMIT'
-              ? d.home.dailyLimit
-              : fill(d.home.abandonBlock, { time: date(allowed.resetsAt, true) })
-            : null
-        }
+        disabled={Boolean(blocked)}
+        blocked={blocked}
       />
+      <MirrorCard />
       <ModeCard
         title={d.home.practiceTitle}
         body={d.home.practiceBody}
@@ -118,6 +143,8 @@ export default function Home() {
         href="/play/speed"
         accent="gold"
       />
+      <Missions />
+      <QuestionOfDay />
     </div>
   );
 }

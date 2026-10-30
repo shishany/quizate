@@ -3,11 +3,13 @@ import {
   matchScore,
   monthlyPoints,
   outcomeFor,
+  rankedXp,
   updateRatings,
   type AnswerRecord,
   type DistanceBand,
   type RankedResult,
 } from '@quizate/game';
+import { ENG, xpGrant } from './engagement';
 import type { Action } from './store';
 import { countedThisMonth } from './store';
 import type { DemoState, MatchSummary, Question } from './types';
@@ -45,6 +47,18 @@ export function settle(
     ? updateRatings(ratingBefore, m.opponent.rating, outcome, cfg).a
     : ratingBefore;
   const answered = m.mine.filter((a) => a.latencyMs !== null);
+  // FR-30: XP for completed matches only; it never touches monthly points (architecture rule 10).
+  const xp = m.forfeit
+    ? null
+    : ranked
+      ? xpGrant(
+          state,
+          'ranked',
+          rankedXp(myScore / cfg.pointsPerCorrect, outcome === 'win', ENG),
+          m.at,
+          m.id,
+        )
+      : xpGrant(state, 'practice', ENG.xp.practice, m.at, m.id);
 
   const summary: MatchSummary = {
     id: m.id,
@@ -61,6 +75,7 @@ export function settle(
     ratingBefore,
     ratingAfter,
     forfeit: m.forfeit,
+    xp: xp?.amount ?? 0,
   };
 
   const result: RankedResult | undefined = ranked
@@ -82,6 +97,7 @@ export function settle(
     type: 'matchFinished',
     summary,
     ranked: result,
+    xp,
     seenIds: ranked ? m.questions.map((q) => q.id) : [],
     abandoned: ranked && m.forfeit,
     flag:

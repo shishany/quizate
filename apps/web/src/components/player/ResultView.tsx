@@ -90,6 +90,9 @@ export function ResultView({
           </div>
         )}
         {!ranked && <p className="mt-3 text-xs text-muted">{d.result.practiceNote}</p>}
+        {Boolean(summary.xp) && (
+          <p className="mt-3 text-sm font-semibold text-violet">+{num(summary.xp ?? 0)} XP</p>
+        )}
       </Card>
 
       <div className="grid gap-2 sm:grid-cols-2">

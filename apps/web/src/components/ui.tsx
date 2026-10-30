@@ -1,7 +1,8 @@
 'use client';
 
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
-import { useT } from '@/i18n';
+import { LANGUAGE_NAMES, useT } from '@/i18n';
+import type { Locale } from '@/lib/types';
 import { useStore } from '@/lib/store';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
@@ -105,14 +106,24 @@ export function LangToggle({ className = '' }: { className?: string }) {
   const { state, dispatch } = useStore();
   const { d } = useT();
   return (
-    <button
-      type="button"
-      onClick={() => dispatch({ type: 'locale', locale: state.locale === 'ar' ? 'en' : 'ar' })}
-      className={`rounded-full border border-line bg-white px-3 py-1 text-sm font-medium hover:bg-slate-50 ${className}`}
-      lang={state.locale === 'ar' ? 'en' : 'ar'}
+    <div
+      role="group"
+      aria-label={d.common.language}
+      className={`inline-flex rounded-full border border-line bg-white p-0.5 ${className}`}
     >
-      {d.common.switchLang}
-    </button>
+      {(Object.keys(LANGUAGE_NAMES) as Locale[]).map((l) => (
+        <button
+          key={l}
+          type="button"
+          lang={l}
+          aria-pressed={state.locale === l}
+          onClick={() => dispatch({ type: 'locale', locale: l })}
+          className={`rounded-full px-2.5 py-0.5 text-xs font-semibold leading-6 ${state.locale === l ? 'bg-navy text-white' : 'text-muted hover:text-ink'}`}
+        >
+          {l === 'en' ? 'EN' : LANGUAGE_NAMES[l]}
+        </button>
+      ))}
+    </div>
   );
 }
 

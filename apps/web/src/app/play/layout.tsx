@@ -12,12 +12,13 @@ import { useStore } from '@/lib/store';
 
 const NAV = [
   { href: '/play', key: 'home', icon: '⌂' },
+  { href: '/play/ladder', key: 'ladder', icon: '⬆' },
   { href: '/play/leaderboard', key: 'leaderboard', icon: '▤' },
   { href: '/play/history', key: 'history', icon: '◷' },
   { href: '/play/profile', key: 'profile', icon: '◉' },
 ] as const;
 
-const FOCUS_ROUTES = ['/play/ranked', '/play/practice', '/play/speed'];
+const FOCUS_ROUTES = ['/play/ranked', '/play/practice', '/play/speed', '/play/mirror'];
 
 export default function PlayerLayout({ children }: { children: ReactNode }) {
   const { state, dispatch, ready } = useStore();
@@ -54,7 +55,7 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
           aria-label={d.nav.home}
           className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-white/95 backdrop-blur"
         >
-          <ul className="mx-auto grid max-w-2xl grid-cols-4">
+          <ul className="mx-auto grid max-w-2xl grid-cols-5">
             {NAV.map((item) => {
               const active =
                 item.href === '/play' ? pathname === '/play' : pathname.startsWith(item.href);

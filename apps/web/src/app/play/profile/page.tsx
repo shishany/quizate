@@ -1,20 +1,37 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { Avatar, Coin, useEngagement } from '@/components/player/engagement';
 import { Badge, Button, Card, LangToggle, Notice } from '@/components/ui';
 import { useT } from '@/i18n';
-import { ageOn } from '@/lib/moderation';
+import { badgesFor, type CosmeticId } from '@/lib/engagement';
+import { ibanValid, maskIban, normalizeIban } from '@/lib/identity';
 import { cityById } from '@/lib/sample';
 import { useStore } from '@/lib/store';
 
-/** Account, consents (FR-02), data export and deletion (FR-03). */
+const BADGES = [
+  'firstWin',
+  'ranked10',
+  'perfect',
+  'streak7',
+  'mirrorFirst',
+  'level5',
+  'speed15',
+] as const;
+
+/** Account: identity (FR-01), IBAN (FR-04), consents (FR-02), progression (FR-30), data export and deletion (FR-03). */
 export default function ProfilePage() {
   const { state, dispatch } = useStore();
   const { d, fill, num, pick, date } = useT();
   const router = useRouter();
+  const e = useEngagement();
+  const [iban, setIban] = useState('');
+  const [ibanMsg, setIbanMsg] = useState('');
   const p = state.player;
   if (!p) return null;
-  const adult = ageOn(p.birthDate, new Date()) >= 18;
+  const earned = badgesFor(state);
+  const title = state.equipped.title as CosmeticId | null;
 
   function exportData() {
     const data = {
@@ -22,6 +39,8 @@ export default function ProfilePage() {
       player: p,
       matches: state.matches,
       rankedResults: state.myResults,
+      xp: state.xp,
+      coins: state.coins,
       following: state.following,
     };
     const url = URL.createObjectURL(
@@ -34,15 +53,15 @@ export default function ProfilePage() {
     URL.revokeObjectURL(url);
   }
 
-  function remove() {
-    if (window.confirm(d.profile.deleteConfirm)) {
-      dispatch({ type: 'reset' });
-      router.push('/');
-    }
+  function addIban() {
+    if (!ibanValid(iban)) return setIbanMsg(d.signin.ibanInvalid);
+    dispatch({ type: 'setIban', masked: maskIban(iban) });
+    setIban('');
+    setIbanMsg('');
   }
 
-  function reset() {
-    if (window.confirm(d.common.resetConfirm)) {
+  function wipe(message: string) {
+    if (window.confirm(message)) {
       dispatch({ type: 'reset' });
       router.push('/');
     }
@@ -53,24 +72,30 @@ export default function ProfilePage() {
       <h1 className="text-2xl font-bold">{d.profile.title}</h1>
       <Card>
         <div className="flex items-center gap-4">
-          <span
-            className="grid h-14 w-14 place-items-center rounded-full bg-brand/10 text-xl font-bold text-brand-deep ring-2 ring-sky"
-            aria-hidden
-          >
-            {p.name.slice(0, 1)}
-          </span>
-          <div>
+          <Avatar name={p.name} frame={state.equipped.frame} size="lg" />
+          <div className="min-w-0">
             <div className="text-lg font-bold">{p.name}</div>
+            {title && <div className="text-sm font-semibold text-violet">{d.cosmetics[title]}</div>}
             <div className="text-sm text-muted" dir="ltr">
               {p.phoneMasked}
             </div>
           </div>
         </div>
-        <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
-          <div>
-            <dt className="text-muted">{d.profile.rating}</dt>
-            <dd className="tabular font-semibold">{num(p.rating)}</dd>
+        <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+          <div className="rounded-xl bg-page p-2">
+            <div className="text-xs text-muted">{d.profile.level}</div>
+            <div className="tabular font-bold">{num(e.level.level)}</div>
           </div>
+          <div className="rounded-xl bg-page p-2">
+            <div className="text-xs text-muted">{d.profile.rating}</div>
+            <div className="tabular font-bold">{num(p.rating)}</div>
+          </div>
+          <div className="rounded-xl bg-page p-2">
+            <div className="text-xs text-muted">{d.profile.coins}</div>
+            <Coin n={num(e.coins)} className="justify-center font-bold" />
+          </div>
+        </div>
+        <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
           <div>
             <dt className="text-muted">{d.profile.city}</dt>
             <dd className="font-semibold">{pick(cityById(p.cityId).name)}</dd>
@@ -80,11 +105,100 @@ export default function ProfilePage() {
             <dd className="font-semibold">{date(p.createdAt)}</dd>
           </div>
         </dl>
-        <div className="mt-3">
-          <Badge tone={adult ? 'ok' : 'warn'}>
-            {adult ? d.profile.prizeEligible : d.profile.prizeIneligible}
-          </Badge>
+      </Card>
+
+      <Card title={d.profile.identity}>
+        <dl className="space-y-2 text-sm">
+          <div className="flex items-center justify-between gap-2">
+            <dt className="text-muted">{d.profile.nationalId}</dt>
+            <dd className="tabular font-semibold" dir="ltr">
+              {p.nationalIdMasked}
+            </dd>
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <dt className="text-muted">{d.profile.dob}</dt>
+            <dd className="font-semibold">{date(`${p.birthDate}T12:00:00Z`)}</dd>
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <dt className="text-muted">{d.profile.iban}</dt>
+            <dd className="tabular font-semibold" dir="ltr">
+              {p.iban ? p.iban.masked : '—'}
+            </dd>
+          </div>
+        </dl>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Badge tone="ok">{d.profile.nafath}</Badge>
+          {p.iban ? (
+            <Badge tone="ok">{d.profile.ibanVerified}</Badge>
+          ) : (
+            <Badge tone="warn">{d.profile.ibanNone}</Badge>
+          )}
         </div>
+        {!p.iban && (
+          <div className="mt-3 space-y-2">
+            <input
+              className="tabular w-full rounded-xl border border-line px-3 py-2 uppercase"
+              dir="ltr"
+              placeholder="SA…"
+              aria-label={d.signin.ibanLabel}
+              value={iban}
+              onChange={(ev) => setIban(normalizeIban(ev.target.value).slice(0, 24))}
+            />
+            {ibanMsg && (
+              <p role="alert" className="text-sm text-bad">
+                {ibanMsg}
+              </p>
+            )}
+            <Button variant="secondary" onClick={addIban}>
+              {d.signin.ibanVerify}
+            </Button>
+          </div>
+        )}
+        <p className="mt-3 text-xs text-muted">{d.profile.identityNote}</p>
+      </Card>
+
+      <Card title={d.profile.badges}>
+        <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {BADGES.map((b) => {
+            const has = earned.includes(b);
+            return (
+              <li
+                key={b}
+                className={`rounded-xl p-3 text-center text-xs font-semibold ${has ? 'bg-gold/15 text-gold-ink' : 'bg-page text-muted opacity-60'}`}
+              >
+                <span className="mb-1 block text-xl" aria-hidden>
+                  {has ? '★' : '☆'}
+                </span>
+                {d.badges[b]}
+              </li>
+            );
+          })}
+        </ul>
+      </Card>
+
+      <Card title={d.profile.cosmetics}>
+        {state.cosmetics.length === 0 ? (
+          <p className="text-sm text-muted">{d.profile.noCosmetics}</p>
+        ) : (
+          <ul className="space-y-2">
+            {(state.cosmetics as CosmeticId[]).map((c) => {
+              const slot = c.startsWith('frame') ? 'frame' : 'title';
+              const on = state.equipped[slot] === c;
+              return (
+                <li key={c} className="flex items-center justify-between gap-2 text-sm">
+                  <span className="font-medium">{d.cosmetics[c]}</span>
+                  <Button
+                    size="sm"
+                    variant={on ? 'secondary' : 'primary'}
+                    onClick={() => dispatch({ type: 'equip', slot, id: on ? null : c })}
+                  >
+                    {on ? d.profile.unequip : d.profile.equip}
+                  </Button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </Card>
 
       <Card title={d.profile.consents}>
@@ -112,7 +226,7 @@ export default function ProfilePage() {
           <Button variant="secondary" onClick={exportData}>
             {d.profile.export}
           </Button>
-          <Button variant="danger" onClick={remove}>
+          <Button variant="danger" onClick={() => wipe(d.profile.deleteConfirm)}>
             {d.profile.delete}
           </Button>
         </div>
@@ -122,7 +236,7 @@ export default function ProfilePage() {
         <Button variant="secondary" onClick={() => dispatch({ type: 'signOut' })}>
           {d.common.signOut}
         </Button>
-        <Button variant="ghost" onClick={reset}>
+        <Button variant="ghost" onClick={() => wipe(d.common.resetConfirm)}>
           {d.common.reset}
         </Button>
       </div>

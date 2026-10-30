@@ -19,8 +19,9 @@ export default function HistoryPage() {
         <Card className="p-0 sm:p-0">
           <ul className="divide-y divide-line">
             {state.matches.map((m) => {
-              const key = m.forfeit ? 'forfeit' : (m.outcome ?? 'draw');
-              const tone = key === 'win' ? 'ok' : key === 'draw' ? 'brand' : 'bad';
+              const key = m.forfeit ? 'forfeit' : (m.outcome ?? 'done');
+              const tone =
+                key === 'win' ? 'ok' : key === 'draw' || key === 'done' ? 'brand' : 'bad';
               return (
                 <li key={m.id} className="flex items-center gap-3 px-4 py-3">
                   <Badge tone={tone} className="w-16 justify-center">
@@ -33,7 +34,12 @@ export default function HistoryPage() {
                         : d.history.bot}
                     </div>
                     <div className="truncate text-xs text-muted">
-                      {m.mode === 'ranked' ? d.match.ranked : d.match.practice} · {date(m.at, true)}
+                      {m.mode === 'ranked'
+                        ? d.match.ranked
+                        : m.mode === 'speed'
+                          ? d.speed.title
+                          : d.match.practice}{' '}
+                      · {date(m.at, true)}
                     </div>
                   </div>
                   <div className="tabular text-end">

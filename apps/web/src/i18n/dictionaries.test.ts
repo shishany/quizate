@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
 import { ar } from './ar';
 import { en } from './en';
+import { ur } from './ur';
 
 function keys(node: unknown, prefix = ''): string[] {
   if (Array.isArray(node)) return [`${prefix}[${node.length}]`];
@@ -9,8 +10,9 @@ function keys(node: unknown, prefix = ''): string[] {
   );
 }
 
-test('ar and en have exactly the same keys (and list lengths)', () => {
+test('ar, en and ur have exactly the same keys (and list lengths)', () => {
   expect(keys(en).sort()).toEqual(keys(ar).sort());
+  expect(keys(ur).sort()).toEqual(keys(ar).sort());
 });
 
 test('placeholders match between languages', () => {
@@ -21,6 +23,7 @@ test('placeholders match between languages', () => {
       walk((a as never)[k], (b as never)[k], `${path}.${k}`);
   };
   walk(ar, en, '');
+  walk(ar, ur, '');
 });
 
 test('the UI never claims to be a demo or a test, and never promises cash', () => {

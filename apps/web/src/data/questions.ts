@@ -10,6 +10,8 @@ export type Category = 'geography' | 'science' | 'history' | 'sports' | 'general
 export interface BiText {
   ar: string;
   en: string;
+  /** Urdu, only once a native reviewer has approved it (FR-29). Without it, Urdu screens show the Arabic text. */
+  ur?: string;
 }
 
 export interface SeedQuestion {
@@ -20,6 +22,8 @@ export interface SeedQuestion {
   /** Correct answer first. */
   options: [BiText, BiText, BiText, BiText];
   campaignId?: string;
+  /** Image questions: a key into QUESTION_IMAGES (data/images.tsx). */
+  image?: string;
 }
 
 type Opt = [string, string];
@@ -1108,4 +1112,110 @@ export const DRAFT_QUESTIONS: SeedQuestion[] = [
     ['4', '4'],
     ['1', '1'],
   ),
+];
+
+/** Image questions (owner request, 2026-10-30): flags drawn for the demo. */
+export const IMAGE_QUESTIONS: SeedQuestion[] = [
+  {
+    ...q(
+      'geography',
+      'easy',
+      'علم أي دولة هذا؟',
+      "Which country's flag is this?",
+      ['اليابان', 'Japan'],
+      ['كوريا الجنوبية', 'South Korea'],
+      ['الصين', 'China'],
+      ['بنغلاديش', 'Bangladesh'],
+    ),
+    image: 'flag-japan',
+  },
+  {
+    ...q(
+      'geography',
+      'easy',
+      'علم أي دولة هذا؟',
+      "Which country's flag is this?",
+      ['فرنسا', 'France'],
+      ['إيطاليا', 'Italy'],
+      ['هولندا', 'Netherlands'],
+      ['روسيا', 'Russia'],
+    ),
+    image: 'flag-france',
+  },
+  {
+    ...q(
+      'geography',
+      'medium',
+      'علم أي دولة هذا؟',
+      "Which country's flag is this?",
+      ['إيطاليا', 'Italy'],
+      ['المكسيك', 'Mexico'],
+      ['أيرلندا', 'Ireland'],
+      ['المجر', 'Hungary'],
+    ),
+    image: 'flag-italy',
+  },
+  {
+    ...q(
+      'geography',
+      'medium',
+      'علم أي دولة هذا؟',
+      "Which country's flag is this?",
+      ['ألمانيا', 'Germany'],
+      ['بلجيكا', 'Belgium'],
+      ['النمسا', 'Austria'],
+      ['إسبانيا', 'Spain'],
+    ),
+    image: 'flag-germany',
+  },
+  {
+    ...q(
+      'geography',
+      'hard',
+      'علم أي دولة هذا؟',
+      "Which country's flag is this?",
+      ['السويد', 'Sweden'],
+      ['النرويج', 'Norway'],
+      ['فنلندا', 'Finland'],
+      ['الدنمارك', 'Denmark'],
+    ),
+    image: 'flag-sweden',
+  },
+];
+
+/**
+ * Brand image questions for the fictional sample sponsors: "which brand is this logo?". Each is a sponsored question
+ * (BR-14) and shows the sponsor's message once revealed.
+ */
+const BRANDS: [string, string][] = [
+  ['واحة التمور', 'Date Oasis'],
+  ['قهوة المساء', 'Masaa Coffee'],
+  ['اتصال بلس', 'Ittisal Plus'],
+  ['سحاب للطيران', 'Sahab Air'],
+];
+function brandQ(
+  index: number,
+  image: string,
+  campaignId: string,
+  difficulty: Difficulty,
+): SeedQuestion {
+  const correct = BRANDS[index] as [string, string];
+  const wrong = BRANDS.filter((_, i) => i !== index);
+  return {
+    ...q(
+      'general',
+      difficulty,
+      'لأي علامة تجارية هذا الشعار؟',
+      'Which brand does this logo belong to?',
+      correct,
+      ...wrong,
+    ),
+    image,
+    campaignId,
+  };
+}
+export const BRAND_QUESTIONS: SeedQuestion[] = [
+  brandQ(1, 'logo-masaa', 'cmp-masaa', 'easy'),
+  brandQ(0, 'logo-oasis', 'cmp-oasis', 'medium'),
+  brandQ(2, 'logo-ittisal', 'cmp-ittisal', 'medium'),
 ];

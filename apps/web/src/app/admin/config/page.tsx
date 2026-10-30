@@ -39,6 +39,8 @@ export default function ConfigPage() {
       <p className="text-muted">{d.config.intro}</p>
       {!superAdmin && <Notice tone="warn">{d.config.superOnly}</Notice>}
 
+      <IbanSetting editable={superAdmin} />
+
       <Card title={d.config.flags}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <code className="text-sm" dir="ltr">
@@ -160,5 +162,68 @@ function Row({ item, editable }: { item: (typeof KEYS)[number]; editable: boolea
         </div>
       )}
     </li>
+  );
+}
+
+/** FR-04: when a verified IBAN is required (config `identity.iban_required_at`). */
+function IbanSetting({ editable }: { editable: boolean }) {
+  const { state, dispatch } = useStore();
+  const { d } = useT();
+  const [value, setValue] = useState(state.ibanRequiredAt);
+  const [reason, setReason] = useState('');
+  const [error, setError] = useState('');
+  const changed = value !== state.ibanRequiredAt;
+
+  function save() {
+    if (!reason.trim()) return setError(d.config.reasonRequired);
+    dispatch({ type: 'ibanRequiredAt', value, reason: reason.trim() });
+    setReason('');
+    setError('');
+  }
+
+  return (
+    <Card title={d.config.ibanTitle}>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <div className="font-medium">{d.config.ibanLabel}</div>
+          <div className="text-xs text-muted" dir="ltr">
+            identity.iban_required_at · FR-04
+          </div>
+        </div>
+        <select
+          className="rounded-xl border border-line bg-white px-3 py-2 text-sm"
+          value={value}
+          disabled={!editable}
+          onChange={(e) => setValue(e.target.value as typeof value)}
+          aria-label={d.config.ibanLabel}
+        >
+          {(['signup', 'ranked', 'prize'] as const).map((v) => (
+            <option key={v} value={v}>
+              {d.config.ibanAt[v]}
+            </option>
+          ))}
+        </select>
+      </div>
+      {editable && changed && (
+        <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_auto]">
+          <input
+            className="rounded-xl border border-line px-3 py-2 text-sm"
+            placeholder={d.config.reason}
+            aria-label={d.config.reason}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+          />
+          <Button size="sm" onClick={save}>
+            {d.common.save}
+          </Button>
+          {error && (
+            <p role="alert" className="text-sm text-bad sm:col-span-2">
+              {error}
+            </p>
+          )}
+        </div>
+      )}
+      <p className="mt-2 text-xs text-muted">{d.config.ibanNote}</p>
+    </Card>
   );
 }

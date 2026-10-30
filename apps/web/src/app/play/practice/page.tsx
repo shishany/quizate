@@ -58,11 +58,11 @@ function Practice() {
   }
 
   function bot(l: Level): Opp {
-    const name = (lc: 'ar' | 'en') =>
+    const name = (lc: 'ar' | 'en' | 'ur') =>
       fill(DICTIONARIES[lc].practice.bot, { level: DICTIONARIES[lc].practice[l] });
     return {
       id: `bot-${l}`,
-      name: { ar: name('ar'), en: name('en') },
+      name: { ar: name('ar'), en: name('en'), ur: name('ur') },
       rating: BOT_RATING[l],
       cityId: state.player?.cityId ?? 'riyadh',
     };

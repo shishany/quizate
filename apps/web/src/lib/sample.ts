@@ -10,31 +10,51 @@ import {
   type RankedResult,
 } from '@quizate/game';
 import {
+  BRAND_QUESTIONS,
   DRAFT_QUESTIONS,
+  IMAGE_QUESTIONS,
   SEED_QUESTIONS,
   SPONSORED_QUESTIONS,
   type SeedQuestion,
 } from '@/data/questions';
-import type { AdminRole, City, DemoState, FraudFlag, Question, SamplePlayer } from './types';
+import type {
+  AdminRole,
+  City,
+  DemoState,
+  FraudFlag,
+  Locale,
+  Question,
+  SamplePlayer,
+} from './types';
 
 export const STORAGE_KEY = 'quizate-demo-v1';
-export const STATE_VERSION = 1;
+export const STATE_VERSION = 3;
 
 /** The one verification code of the sample version, for every number and every admin role. No message is sent. */
 export const SAMPLE_CODE = '000000';
 
 /** Ten cities, as in the build prompt's seed. Centre points rounded to about 1 km. */
 export const CITIES: City[] = [
-  { id: 'riyadh', name: { ar: 'الرياض', en: 'Riyadh' }, lat: 24.71, lng: 46.68 },
-  { id: 'jeddah', name: { ar: 'جدة', en: 'Jeddah' }, lat: 21.54, lng: 39.17 },
-  { id: 'makkah', name: { ar: 'مكة المكرمة', en: 'Makkah' }, lat: 21.39, lng: 39.86 },
-  { id: 'madinah', name: { ar: 'المدينة المنورة', en: 'Madinah' }, lat: 24.47, lng: 39.61 },
-  { id: 'dammam', name: { ar: 'الدمام', en: 'Dammam' }, lat: 26.43, lng: 50.1 },
-  { id: 'khobar', name: { ar: 'الخبر', en: 'Al Khobar' }, lat: 26.28, lng: 50.21 },
-  { id: 'abha', name: { ar: 'أبها', en: 'Abha' }, lat: 18.22, lng: 42.51 },
-  { id: 'tabuk', name: { ar: 'تبوك', en: 'Tabuk' }, lat: 28.38, lng: 36.57 },
-  { id: 'buraydah', name: { ar: 'بريدة', en: 'Buraydah' }, lat: 26.33, lng: 43.97 },
-  { id: 'hail', name: { ar: 'حائل', en: "Ha'il" }, lat: 27.52, lng: 41.69 },
+  { id: 'riyadh', name: { ar: 'الرياض', ur: 'ریاض', en: 'Riyadh' }, lat: 24.71, lng: 46.68 },
+  { id: 'jeddah', name: { ar: 'جدة', ur: 'جدہ', en: 'Jeddah' }, lat: 21.54, lng: 39.17 },
+  {
+    id: 'makkah',
+    name: { ar: 'مكة المكرمة', ur: 'مکہ مکرمہ', en: 'Makkah' },
+    lat: 21.39,
+    lng: 39.86,
+  },
+  {
+    id: 'madinah',
+    name: { ar: 'المدينة المنورة', ur: 'مدینہ منورہ', en: 'Madinah' },
+    lat: 24.47,
+    lng: 39.61,
+  },
+  { id: 'dammam', name: { ar: 'الدمام', ur: 'دمام', en: 'Dammam' }, lat: 26.43, lng: 50.1 },
+  { id: 'khobar', name: { ar: 'الخبر', ur: 'الخبر', en: 'Al Khobar' }, lat: 26.28, lng: 50.21 },
+  { id: 'abha', name: { ar: 'أبها', ur: 'ابہا', en: 'Abha' }, lat: 18.22, lng: 42.51 },
+  { id: 'tabuk', name: { ar: 'تبوك', ur: 'تبوک', en: 'Tabuk' }, lat: 28.38, lng: 36.57 },
+  { id: 'buraydah', name: { ar: 'بريدة', ur: 'بریدہ', en: 'Buraydah' }, lat: 26.33, lng: 43.97 },
+  { id: 'hail', name: { ar: 'حائل', ur: 'حائل', en: "Ha'il" }, lat: 27.52, lng: 41.69 },
 ];
 
 export const cityById = (id: string) => CITIES.find((c) => c.id === id) ?? (CITIES[0] as City);
@@ -160,35 +180,45 @@ export function sampleMonthResults(now: Date, cfg: GameConfig): Map<string, Rank
   return out;
 }
 
-export const ADMIN_USERS: Record<AdminRole, { id: string; name: { ar: string; en: string } }> = {
-  super_admin: { id: 'adm-huda', name: { ar: 'هدى (مدير النظام)', en: 'Huda (super admin)' } },
+export const ADMIN_USERS: Record<
+  AdminRole,
+  { id: string; name: { ar: string; en: string; ur: string } }
+> = {
+  super_admin: {
+    id: 'adm-huda',
+    name: { ar: 'هدى (مدير النظام)', en: 'Huda (super admin)', ur: 'ہدیٰ (سپر ایڈمن)' },
+  },
   content_editor: {
     id: 'adm-sara',
-    name: { ar: 'سارة (محررة المحتوى)', en: 'Sara (content editor)' },
+    name: { ar: 'سارة (محررة المحتوى)', en: 'Sara (content editor)', ur: 'سارہ (مواد ایڈیٹر)' },
   },
   content_reviewer: {
     id: 'adm-khalid',
-    name: { ar: 'خالد (مراجع المحتوى)', en: 'Khalid (content reviewer)' },
+    name: { ar: 'خالد (مراجع المحتوى)', en: 'Khalid (content reviewer)', ur: 'خالد (مواد ریویور)' },
   },
   sponsor_manager: {
     id: 'adm-noura',
-    name: { ar: 'نورة (مديرة الرعاة)', en: 'Noura (sponsor manager)' },
+    name: { ar: 'نورة (مديرة الرعاة)', en: 'Noura (sponsor manager)', ur: 'نورہ (اسپانسر مینیجر)' },
   },
   fraud_analyst: {
     id: 'adm-faisal',
-    name: { ar: 'فيصل (محلل الاحتيال)', en: 'Faisal (fraud analyst)' },
+    name: { ar: 'فيصل (محلل الاحتيال)', en: 'Faisal (fraud analyst)', ur: 'فیصل (فراڈ تجزیہ کار)' },
   },
   prize_officer: {
     id: 'adm-omar',
-    name: { ar: 'عمر (مسؤول الجوائز)', en: 'Omar (prize officer)' },
+    name: { ar: 'عمر (مسؤول الجوائز)', en: 'Omar (prize officer)', ur: 'عمر (انعامات افسر)' },
   },
   finance_approver: {
     id: 'adm-lama',
-    name: { ar: 'لمى (معتمدة المالية)', en: 'Lama (finance approver)' },
+    name: {
+      ar: 'لمى (معتمدة المالية)',
+      en: 'Lama (finance approver)',
+      ur: 'لمیٰ (مالیاتی منظور کنندہ)',
+    },
   },
 };
 
-export const adminName = (id: string, locale: 'ar' | 'en') =>
+export const adminName = (id: string, locale: Locale) =>
   Object.values(ADMIN_USERS).find((u) => u.id === id)?.name[locale] ?? id;
 
 function toQuestion(s: SeedQuestion, status: Question['status'], at: string): Question {
@@ -212,6 +242,7 @@ function toQuestion(s: SeedQuestion, status: Question['status'], at: string): Qu
     expiresAt: null,
     sponsored: Boolean(s.campaignId),
     campaignId: s.campaignId ?? null,
+    image: s.image,
     version: 1,
     authorId: author,
     reviewerId: reviewer,
@@ -293,6 +324,8 @@ export function initialState(now = new Date()): DemoState {
   const questions = [
     ...SEED_QUESTIONS.map((s) => toQuestion(s, 'published', at)),
     ...SPONSORED_QUESTIONS.map((s) => toQuestion(s, 'published', at)),
+    ...IMAGE_QUESTIONS.map((s) => toQuestion(s, 'published', at)),
+    ...BRAND_QUESTIONS.map((s) => toQuestion(s, 'published', at)),
     ...DRAFT_QUESTIONS.map((s, i) =>
       toQuestion(s, i === 0 ? 'draft' : 'in_review', now.toISOString()),
     ),
@@ -317,5 +350,17 @@ export function initialState(now = new Date()): DemoState {
     adminRole: null,
     sponsorTally: { impressions: 0, answers: 0, correct: 0 },
     activeRanked: null,
+    savedAccount: null,
+    xp: [],
+    coins: [],
+    activeDays: [],
+    lastClaim: null,
+    mirror: {},
+    questionOfDay: {},
+    missionClaims: [],
+    roadClaims: [],
+    cosmetics: [],
+    equipped: { frame: null, title: null },
+    ibanRequiredAt: 'signup',
   };
 }

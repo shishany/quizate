@@ -7,6 +7,7 @@ import { ADMIN_USERS, adminName } from '@/lib/sample';
 import { questionActionAllowed, useStore } from '@/lib/store';
 import type { Question, QuestionAction } from '@/lib/types';
 import type { BiText, Category } from '@/data/questions';
+import { QuestionImage } from '@/components/QuestionImage';
 
 const STATUS_TONE = {
   draft: 'neutral',
@@ -211,7 +212,10 @@ function QuestionPanel({ q, onClose }: { q: Question; onClose: () => void }) {
           <Badge>{d.questions.difficulties[q.difficulty]}</Badge>
           <Badge>{d.questions.categories[q.category]}</Badge>
           {q.sponsored && <Badge tone="gold">{d.questions.sponsored}</Badge>}
+          {q.image && <Badge tone="violet">{d.questions.imageType}</Badge>}
+          <Badge tone="warn">{d.questions.urduPending}</Badge>
         </div>
+        <QuestionImage id={q.image} />
         <div className="grid gap-3 rounded-xl bg-page p-3">
           <p dir="rtl" lang="ar" className="font-semibold">
             {q.text.ar}

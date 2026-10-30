@@ -9,10 +9,20 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { riyadhMonthKey, updateRatings, type GameConfig, type RankedResult } from '@quizate/game';
+import {
+  claimState,
+  riyadhDayKey,
+  riyadhMonthKey,
+  updateRatings,
+  type GameConfig,
+  type RankedResult,
+} from '@quizate/game';
 import { ADMIN_USERS, STATE_VERSION, STORAGE_KEY, initialState } from './sample';
+import { ENG, ROAD, missionProgress, missionsFor, xpGrant } from './engagement';
 import type {
   AdminRole,
+  LedgerEntry,
+  MirrorResult,
   AuditEntry,
   DemoState,
   FraudStatus,
@@ -29,6 +39,7 @@ export type Action =
   | { type: 'reset' }
   | { type: 'signIn'; player: Player }
   | { type: 'signOut' }
+  | { type: 'restoreAccount' }
   | {
       type: 'matchFinished';
       summary: MatchSummary;
@@ -37,10 +48,19 @@ export type Action =
       abandoned?: boolean;
       flag?: { evidence: { ar: string; en: string } };
       sponsored?: { shown: number; answered: number; correct: number };
+      xp?: LedgerEntry | null;
     }
+  | { type: 'mirrorFinished'; day: string; result: MirrorResult }
+  | { type: 'claimDaily' }
+  | { type: 'questionOfDay'; day: string; correct: boolean }
+  | { type: 'claimMission'; id: string }
+  | { type: 'claimRoad'; nodeId: string }
+  | { type: 'equip'; slot: 'frame' | 'title'; id: string | null }
+  | { type: 'setIban'; masked: string }
+  | { type: 'ibanRequiredAt'; value: DemoState['ibanRequiredAt']; reason: string }
   | { type: 'rankedStart'; active: NonNullable<DemoState['activeRanked']> }
   | { type: 'rankedForfeitStale' }
-  | { type: 'speedBest'; score: number }
+  | { type: 'speedFinished'; correct: number; answered: number }
   | { type: 'follow'; id: string }
   | { type: 'adminSignIn'; role: AdminRole }
   | { type: 'adminSignOut' }
@@ -158,11 +178,13 @@ export function reducer(state: DemoState, action: Action): DemoState {
     case 'reset':
       return { ...initialState(), locale: state.locale };
     case 'signIn':
-      return { ...state, player: action.player };
+      return { ...state, player: action.player, savedAccount: action.player };
     case 'signOut':
-      return { ...state, player: null };
+      return { ...state, player: null, savedAccount: state.player ?? state.savedAccount };
+    case 'restoreAccount':
+      return state.savedAccount ? { ...state, player: state.savedAccount } : state;
     case 'matchFinished': {
-      const { summary, ranked, seenIds = [], abandoned, flag, sponsored } = action;
+      const { summary, ranked, seenIds = [], abandoned, flag, sponsored, xp } = action;
       const seen = { ...state.seen };
       for (const id of seenIds) seen[id] = summary.at;
       const player = state.player ? { ...state.player, rating: summary.ratingAfter } : null;
@@ -198,6 +220,118 @@ export function reducer(state: DemoState, action: Action): DemoState {
         fraud,
         sponsorTally: tally,
         activeRanked: state.activeRanked?.id === summary.id ? null : state.activeRanked,
+        xp: xp ? [...state.xp, xp] : state.xp,
+        activeDays: summary.forfeit
+          ? state.activeDays
+          : [...state.activeDays, riyadhDayKey(summary.at)],
+      };
+    }
+    case 'mirrorFinished': {
+      if (state.mirror[action.day]) return state;
+      const grant = xpGrant(
+        state,
+        'mirror',
+        ENG.xp.mirror,
+        action.result.at,
+        `mirror:${action.day}`,
+      );
+      return {
+        ...state,
+        mirror: { ...state.mirror, [action.day]: action.result },
+        xp: grant ? [...state.xp, grant] : state.xp,
+        activeDays: [...state.activeDays, action.day],
+      };
+    }
+    case 'claimDaily': {
+      const at = new Date().toISOString();
+      const day = riyadhDayKey(at);
+      const c = claimState(state.lastClaim, day, ENG);
+      if (!c.claimable) return state;
+      const reward = ENG.claim[c.index] ?? ENG.claim[0]!;
+      const grant = xpGrant(state, 'claim', reward.xp, at, `claim:${day}`);
+      return {
+        ...state,
+        lastClaim: { day, index: c.index },
+        coins: [...state.coins, { at, source: 'claim', amount: reward.coins, ref: `claim:${day}` }],
+        xp: grant ? [...state.xp, grant] : state.xp,
+        cosmetics:
+          reward.cosmetic && !state.cosmetics.includes(reward.cosmetic)
+            ? [...state.cosmetics, reward.cosmetic]
+            : state.cosmetics,
+      };
+    }
+    case 'questionOfDay': {
+      if (state.questionOfDay[action.day]) return state;
+      const at = new Date().toISOString();
+      const grant = action.correct
+        ? xpGrant(state, 'qotd', ENG.xp.questionOfDay, at, `qotd:${action.day}`)
+        : null;
+      return {
+        ...state,
+        questionOfDay: { ...state.questionOfDay, [action.day]: { correct: action.correct } },
+        xp: grant ? [...state.xp, grant] : state.xp,
+      };
+    }
+    case 'claimMission': {
+      const at = new Date().toISOString();
+      const day = riyadhDayKey(at);
+      const key = `${day}:${action.id}`;
+      const m = missionsFor(day).find((x) => x.id === action.id);
+      if (!m || state.missionClaims.includes(key) || missionProgress(state, m, day) < m.target)
+        return state;
+      const grant = xpGrant(state, 'mission', m.xp, at, key);
+      return {
+        ...state,
+        missionClaims: [...state.missionClaims, key],
+        coins: [...state.coins, { at, source: 'mission', amount: m.coins, ref: key }],
+        xp: grant ? [...state.xp, grant] : state.xp,
+      };
+    }
+    case 'claimRoad': {
+      const at = new Date().toISOString();
+      const key = `${riyadhMonthKey(at)}:${action.nodeId}`;
+      const node = ROAD.find((n) => n.id === action.nodeId);
+      if (!node?.reward || state.roadClaims.includes(key)) return state;
+      const r = node.reward;
+      return {
+        ...state,
+        roadClaims: [...state.roadClaims, key],
+        coins: r.coins
+          ? [...state.coins, { at, source: 'road', amount: r.coins, ref: key }]
+          : state.coins,
+        cosmetics:
+          r.cosmetic && !state.cosmetics.includes(r.cosmetic)
+            ? [...state.cosmetics, r.cosmetic]
+            : state.cosmetics,
+      };
+    }
+    case 'equip':
+      if (action.id && !state.cosmetics.includes(action.id)) return state;
+      return { ...state, equipped: { ...state.equipped, [action.slot]: action.id } };
+    case 'setIban':
+      return state.player
+        ? {
+            ...state,
+            player: {
+              ...state.player,
+              iban: { masked: action.masked, verifiedAt: new Date().toISOString() },
+            },
+          }
+        : state;
+    case 'ibanRequiredAt': {
+      if (
+        state.adminRole !== 'super_admin' ||
+        !action.reason.trim() ||
+        action.value === state.ibanRequiredAt
+      )
+        return state;
+      return {
+        ...state,
+        ibanRequiredAt: action.value,
+        audit: audit(state, 'config.change', 'identity.iban_required_at', action.reason, {
+          before: state.ibanRequiredAt,
+          after: action.value,
+        }),
       };
     }
     case 'rankedStart':
@@ -241,8 +375,36 @@ export function reducer(state: DemoState, action: Action): DemoState {
       };
       return reducer({ ...state }, { type: 'matchFinished', summary, ranked, abandoned: true });
     }
-    case 'speedBest':
-      return { ...state, speedBest: Math.max(state.speedBest, action.score) };
+    case 'speedFinished': {
+      const at = new Date().toISOString();
+      const grant = xpGrant(state, 'practice', ENG.xp.practice, at, 'speed');
+      const rating = state.player?.rating ?? state.config.rating.start;
+      const summary: MatchSummary = {
+        id: `s-${Date.now()}`,
+        mode: 'speed',
+        at,
+        opponent: null,
+        myScore: action.correct,
+        opponentScore: null,
+        outcome: null,
+        correct: action.correct,
+        questions: action.answered,
+        monthlyPoints: 0,
+        counted: false,
+        ratingBefore: rating,
+        ratingAfter: rating,
+        forfeit: false,
+        answered: action.answered,
+        xp: grant?.amount ?? 0,
+      };
+      return {
+        ...state,
+        speedBest: Math.max(state.speedBest, action.correct),
+        matches: [summary, ...state.matches],
+        xp: grant ? [...state.xp, grant] : state.xp,
+        activeDays: [...state.activeDays, riyadhDayKey(at)],
+      };
+    }
     case 'follow':
       return {
         ...state,
@@ -395,7 +557,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       // Private mode or full storage: the demo still works for this visit.
     }
     document.documentElement.lang = state.locale;
-    document.documentElement.dir = state.locale === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.dir = state.locale === 'en' ? 'ltr' : 'rtl';
   }, [state, ready]);
 
   const value = useMemo(() => ({ state, dispatch, ready }), [state, ready]);
