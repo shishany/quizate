@@ -1,0 +1,6 @@
+pnpm-lock.yaml
+dist
+.next
+coverage
+apps/mobile
+docs/BUILD_PROMPTS.md
