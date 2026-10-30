@@ -102,6 +102,9 @@ written for every admin action; no TODOs in money or scoring paths.
 
 ## Web demo (owner decision, 2026-10-30)
 
+- **Live (since 2026-10-30):** https://quizate.algo-nova.com on Vercel (project `quizate`, Root Directory
+  `apps/web`, build settings in `apps/web/vercel.json`). DNS: CNAME `quizate` in the Hetzner konsoleH zone
+  `algo-nova.com`. Vercel deploys on every push to the tracked branch (`main`, or `demo-web` while it is tracked).
 - The owner presents the product with a **web demo on Vercel** before the full build: `apps/web`, described in
   `docs/DEMO.md`, deployed per `docs/DEPLOY_VERCEL.md`. Player app at `/play`, admin console at `/admin`.
 - It runs in the browser on sample data (`localStorage`, key `quizate-demo-v1`); no server, no real personal data.
