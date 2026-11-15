@@ -3,6 +3,8 @@ import {
   botAnswer,
   matchScore,
   outcomeFor,
+  correctCount,
+  totalAnswerMs,
   riyadhMonthKey,
   roundCoord,
   seededRng,
@@ -28,7 +30,7 @@ import type {
 } from './types';
 
 export const STORAGE_KEY = 'quizate-demo-v1';
-export const STATE_VERSION = 4;
+export const STATE_VERSION = 7;
 
 /** The one verification code of the sample version, for every number and every admin role. No message is sent. */
 export const SAMPLE_CODE = '000000';
@@ -117,6 +119,10 @@ export const SAMPLE_PLAYERS: SamplePlayer[] = (() => {
         lng: roundCoord(city.lng + (rng() - 0.5) * 0.3),
       },
       allTimeBase: Math.round(2000 + rng() * 26000) / 2,
+      // Every sixth sample player is 13-17; a few adults have not had their ID checked yet.
+      ageGroup: i % 6 === 4 ? ('youth' as const) : ('adult' as const),
+      cashEligible: i % 6 !== 4 && i % 9 !== 2,
+      birthDate: i % 6 === 4 ? `${2011 - (i % 3)}-06-15` : `${1980 + ((i * 7) % 25)}-03-10`,
     };
   });
 })();
@@ -127,6 +133,13 @@ export const samplePlayerById = (id: string) => SAMPLE_PLAYERS.find((p) => p.id 
  * This month's ranked results for every sample player, generated from the month key so the leaderboard looks
  * lived-in on any day. Times fall between the start of the Riyadh month and now.
  */
+/**
+ * Sample players carry an all-time skill rating centred on 1,200. CR v3 section 6 restarts everyone at 1,000 each
+ * month, so a sample opponent's monthly rating is its offset from 1,200 added to the monthly start.
+ */
+export const toMonthlyScale = (sampleRating: number, cfg: GameConfig): number =>
+  cfg.rating.start + (sampleRating - 1200);
+
 export function sampleMonthResults(now: Date, cfg: GameConfig): Map<string, RankedResult[]> {
   const month = riyadhMonthKey(now);
   const rng = seededRng(Number(month.replace('-', '')));
@@ -136,7 +149,8 @@ export function sampleMonthResults(now: Date, cfg: GameConfig): Map<string, Rank
   const out = new Map<string, RankedResult[]>(SAMPLE_PLAYERS.map((p) => [p.id, []]));
 
   SAMPLE_PLAYERS.forEach((p, i) => {
-    const target = Math.round((8 + rng() * 62) * elapsed);
+    // CR v3 section 6 qualifies at 60 matches, so the sample's busiest players play up to ~90 a month.
+    const target = Math.round((15 + rng() * 75) * Math.max(elapsed, 0.75));
     for (let m = 0; m < target; m++) {
       const opp = SAMPLE_PLAYERS[
         (i + 1 + Math.floor(rng() * (SAMPLE_PLAYERS.length - 1))) % SAMPLE_PLAYERS.length
@@ -168,9 +182,18 @@ export function sampleMonthResults(now: Date, cfg: GameConfig): Map<string, Rank
         matchId: `${p.id}-${m}`,
         at,
         opponentId: opp.id,
-        outcome: outcomeFor(score, oppScore),
+        outcome: outcomeFor(
+          score,
+          oppScore,
+          totalAnswerMs(mine, cfg),
+          totalAnswerMs(
+            theirs.map((a) => ({ ...a, option: 0 })),
+            cfg,
+          ),
+        ),
         score,
-        correct: score / cfg.pointsPerCorrect,
+        correct: correctCount(mine),
+        opponentRating: toMonthlyScale(opp.rating, cfg),
         questions: cfg.questionsPerMatch,
         latencyTotalMs: answered.reduce((s, a) => s + (a.latencyMs ?? 0), 0),
         answered: answered.length,
@@ -225,7 +248,7 @@ function toQuestion(s: SeedQuestion, status: Question['status'], at: string): Qu
   const author = ADMIN_USERS.content_editor.id;
   const reviewer = status === 'published' ? ADMIN_USERS.content_reviewer.id : null;
   const history: Question['history'] = [{ at, actor: author, action: 'created', version: 1 }];
-  if (status === 'in_review' || status === 'published')
+  if (status === 'in_review' || status === 'needs_review' || status === 'published')
     history.push({ at, actor: author, action: 'submitted', version: 1 });
   if (status === 'published' && reviewer)
     history.push(
@@ -322,7 +345,7 @@ function sampleFraud(now: Date): FraudFlag[] {
 export function initialState(now = new Date()): DemoState {
   const at = new Date(now.getTime() - 40 * 24 * 3600_000).toISOString();
   const questions = [
-    ...SEED_QUESTIONS.map((s) => toQuestion(s, 'published', at)),
+    ...SEED_QUESTIONS.map((s) => toQuestion(s, s.needsReview ? 'needs_review' : 'published', at)),
     ...SPONSORED_QUESTIONS.map((s) => toQuestion(s, 'published', at)),
     ...IMAGE_QUESTIONS.map((s) => toQuestion(s, 'published', at)),
     ...BRAND_QUESTIONS.map((s) => toQuestion(s, 'published', at)),
@@ -347,8 +370,12 @@ export function initialState(now = new Date()): DemoState {
     following: [],
     fraud: sampleFraud(now),
     audit: [],
+    payouts: {},
+    youthAwards: [],
     adminRole: null,
     sponsorTally: { impressions: 0, answers: 0, correct: 0 },
+    sponsorEvents: [],
+    campaignPrices: {},
     activeRanked: null,
     savedAccount: null,
     xp: [],

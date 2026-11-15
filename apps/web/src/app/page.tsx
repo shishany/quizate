@@ -50,7 +50,11 @@ export default function Landing() {
       </main>
 
       <footer className="mx-auto w-full max-w-5xl px-4 pb-6 text-xs text-muted">
+        <p className="font-semibold text-primary">{d.common.initiative}</p>
         {d.common.footer}
+        <Link href="/stats" className="ms-2 font-semibold text-primary underline">
+          {d.stats.title}
+        </Link>
       </footer>
     </div>
   );

@@ -1,77 +1,182 @@
 'use client';
 
-import { seededRng } from '@quizate/game';
-import { Badge, Card } from '@/components/ui';
+import { useState } from 'react';
+import { campaignLive, reportCsv } from '@quizate/game';
+import { Badge, Button, Card } from '@/components/ui';
 import { useT } from '@/i18n';
-import { CITIES } from '@/lib/sample';
 import { useStore } from '@/lib/store';
-import { SAMPLE_CAMPAIGN_ID } from '@/data/questions';
+import { SAMPLE_SPONSORS, sampleCampaigns } from '@/data/sponsors';
+import { campaignRows } from '@/lib/sponsorship';
 
-/** Small cells are hidden in every sponsor report (architecture rule 8, build prompt 9). */
-const MIN_CELL = 20;
-
-/** FR-16, FR-17: one sample campaign and its aggregated report. Sponsors never see personal data. */
+/**
+ * CR v3 section 8: sponsors, their campaigns, and each campaign's report (views, answers, % correct by day) with
+ * CSV export. Aggregates only: sponsors never see personal data (architecture rule 9).
+ */
 export default function SponsorsPage() {
-  const { state } = useStore();
+  const { state, dispatch } = useStore();
   const { d, fill, num, pick, date } = useT();
-  const questions = state.questions.filter((q) => q.campaignId === SAMPLE_CAMPAIGN_ID);
-  const rng = seededRng(4242);
-  const rows = CITIES.map((c, i) => {
-    const impressions = i < 7 ? Math.round(60 + rng() * 900) : Math.round(rng() * 18);
-    const answers = Math.round(impressions * (0.9 + rng() * 0.08));
-    const correct = Math.round(answers * (0.55 + rng() * 0.3));
-    return { city: c, impressions, answers, correct };
-  });
+  const [price, setPrice] = useState('');
+  const [priceReason, setPriceReason] = useState('');
   const now = new Date();
-  const start = new Date(now.getTime() - 12 * 86_400_000).toISOString();
-  const end = new Date(now.getTime() + 18 * 86_400_000).toISOString();
-  const cell = (n: number) =>
-    n < MIN_CELL ? (
-      <span className="text-muted">{fill(d.sponsors.suppressed, { n: num(MIN_CELL) })}</span>
-    ) : (
-      num(n)
-    );
+  const campaigns = sampleCampaigns(
+    now,
+    state.campaignPrices,
+    state.config.sponsor.defaultPricePer1000Halalas,
+  );
+  const [selected, setSelected] = useState(campaigns[0]?.id ?? '');
+  const campaign = campaigns.find((c) => c.id === selected) ?? campaigns[0];
+  if (!campaign) return null;
+  const sponsor = SAMPLE_SPONSORS.find((s) => s.id === campaign.sponsorId);
+  const rows = campaignRows(campaign, state.sponsorEvents, now);
+  const total = rows.reduce(
+    (t, r) => ({
+      views: t.views + r.views,
+      billable: t.billable + r.billableViews,
+      answers: t.answers + r.answers,
+      correct: t.correct + r.correct,
+    }),
+    { views: 0, billable: 0, answers: 0, correct: 0 },
+  );
+  const questions = state.questions.filter((q) => q.campaignId === campaign.id);
+  const mine = state.sponsorEvents.filter((e) => e.campaignId === campaign.id);
+
+  function exportCsv() {
+    const blob = new Blob([reportCsv(rows)], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `campaign-${campaign!.id}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">{d.sponsors.title}</h1>
-      <Card>
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div>
-            <div className="text-xs text-muted">{d.sponsors.campaign}</div>
-            <div className="text-lg font-bold">{d.sponsors.campaignName}</div>
-            <div className="text-sm text-muted">
-              {d.sponsors.sponsor}: {d.sponsors.sponsorName}
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <Badge tone="ok">{d.sponsors.live}</Badge>
-            <Badge tone="violet">{d.common.sample}</Badge>
-          </div>
-        </div>
-        <p className="mt-2 text-sm">
-          <span className="text-muted">{d.sponsors.dates}: </span>
-          {date(start)} – {date(end)}
-        </p>
-        <div className="mt-3">
-          <div className="mb-1 text-sm font-medium">{d.sponsors.questions}</div>
-          <ul className="space-y-1 text-sm">
-            {questions.map((q) => (
-              <li key={q.id} className="rounded-lg bg-page px-3 py-1.5">
-                {pick(q.text)}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </Card>
-
-      <Card title={d.sponsors.report} className="overflow-x-auto">
-        <table className="w-full min-w-[480px] text-sm">
+      <Card title={d.sponsors.campaigns} className="overflow-x-auto">
+        <table className="w-full min-w-[560px] text-sm">
           <thead className="text-xs text-muted">
             <tr>
               {[
-                d.sponsors.city,
+                d.sponsors.sponsor,
+                d.sponsors.dates,
+                d.sponsors.quota,
+                d.sponsors.price,
+                d.sponsors.status,
+              ].map((h) => (
+                <th key={h} className="py-2 text-start font-medium">
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="tabular divide-y divide-line">
+            {campaigns.map((c) => {
+              const s = SAMPLE_SPONSORS.find((x) => x.id === c.sponsorId);
+              return (
+                <tr
+                  key={c.id}
+                  className={`cursor-pointer ${c.id === campaign.id ? 'bg-highlight/15' : ''}`}
+                  onClick={() => setSelected(c.id)}
+                >
+                  <td className="py-2 font-medium">{s ? pick(s.name) : c.sponsorId}</td>
+                  <td className="py-2">
+                    {date(c.startsAt)} – {date(c.endsAt)}
+                  </td>
+                  <td className="py-2">{num(c.viewQuota)}</td>
+                  <td className="py-2">
+                    {fill(d.sponsors.priceValue, { sar: num(c.pricePer1000Halalas / 100, 2) })}
+                  </td>
+                  <td className="py-2">
+                    {campaignLive(c, now) ? (
+                      <Badge tone="ok">{d.sponsors.live}</Badge>
+                    ) : (
+                      <Badge>{d.sponsors.ended}</Badge>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        <div className="mt-3 flex flex-wrap items-end gap-2">
+          <label className="text-sm">
+            <span className="block text-xs text-muted">{d.sponsors.setPrice}</span>
+            <input
+              inputMode="decimal"
+              dir="ltr"
+              className="w-28 rounded-lg border border-line bg-card px-3 py-1.5 text-sm"
+              placeholder={String(campaign.pricePer1000Halalas / 100)}
+              value={price}
+              onChange={(e) => setPrice(e.target.value.replace(/[^0-9.]/g, ''))}
+            />
+          </label>
+          <input
+            className="min-w-0 flex-1 rounded-lg border border-line bg-card px-3 py-1.5 text-sm"
+            placeholder={d.prizes.reason}
+            aria-label={d.prizes.reason}
+            value={priceReason}
+            onChange={(e) => setPriceReason(e.target.value)}
+          />
+          <Button
+            size="sm"
+            disabled={!Number(price) || !priceReason.trim()}
+            onClick={() => {
+              dispatch({
+                type: 'campaignPrice',
+                campaignId: campaign.id,
+                halalas: Math.round(Number(price) * 100),
+                reason: priceReason,
+              });
+              setPrice('');
+              setPriceReason('');
+            }}
+          >
+            {d.common.save}
+          </Button>
+          <Badge tone="violet">{d.common.sample}</Badge>
+        </div>
+        <p className="mt-1 text-xs text-muted">{d.sponsors.billableNote}</p>
+      </Card>
+
+      <Card
+        title={`${d.sponsors.report} · ${sponsor ? pick(sponsor.name) : ''}`}
+        action={
+          <Button variant="secondary" size="sm" onClick={exportCsv}>
+            {d.sponsors.exportCsv}
+          </Button>
+        }
+        className="overflow-x-auto"
+      >
+        <div className="mb-3 grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
+          <div className="rounded-xl bg-card p-2">
+            <div className="text-xs text-muted">{d.sponsors.impressions}</div>
+            <div className="tabular font-bold">{num(total.views)}</div>
+          </div>
+          <div className="rounded-xl bg-card p-2">
+            <div className="text-xs text-muted">{d.sponsors.billable}</div>
+            <div className="tabular font-bold">{num(total.billable)}</div>
+          </div>
+          <div className="rounded-xl bg-card p-2">
+            <div className="text-xs text-muted">{d.sponsors.answers}</div>
+            <div className="tabular font-bold">{num(total.answers)}</div>
+          </div>
+          <div className="rounded-xl bg-card p-2">
+            <div className="text-xs text-muted">{d.sponsors.correctPct}</div>
+            <div className="tabular font-bold">
+              {total.answers
+                ? `${num(Math.round((total.correct / total.answers) * 1000) / 10, 1)}%`
+                : '—'}
+            </div>
+          </div>
+        </div>
+        <table className="w-full min-w-[420px] text-sm">
+          <thead className="text-xs text-muted">
+            <tr>
+              {[
+                d.sponsors.day,
                 d.sponsors.impressions,
+                d.sponsors.billable,
                 d.sponsors.answers,
                 d.sponsors.correctPct,
               ].map((h) => (
@@ -83,28 +188,35 @@ export default function SponsorsPage() {
           </thead>
           <tbody className="tabular divide-y divide-line">
             {rows.map((r) => (
-              <tr key={r.city.id}>
-                <td className="py-2">{pick(r.city.name)}</td>
-                <td className="py-2">{cell(r.impressions)}</td>
-                <td className="py-2">{cell(r.answers)}</td>
-                <td className="py-2">
-                  {r.answers < MIN_CELL
-                    ? '—'
-                    : `${num(Math.round((r.correct / r.answers) * 100))}%`}
-                </td>
+              <tr key={r.day}>
+                <td className="py-2">{date(`${r.day}T12:00:00+03:00`)}</td>
+                <td className="py-2">{num(r.views)}</td>
+                <td className="py-2 font-semibold">{num(r.billableViews)}</td>
+                <td className="py-2">{num(r.answers)}</td>
+                <td className="py-2">{r.correctPct === null ? '—' : `${num(r.correctPct, 1)}%`}</td>
               </tr>
             ))}
           </tbody>
         </table>
-        <p className="mt-3 text-xs text-muted">
-          {fill(d.sponsors.suppressedNote, { n: num(MIN_CELL) })}
-        </p>
+        <p className="mt-3 text-xs text-muted">{d.sponsors.qualityNote}</p>
         <p className="mt-1 text-xs text-muted">
           {fill(d.sponsors.yours, {
-            i: num(state.sponsorTally.impressions),
-            a: num(state.sponsorTally.answers),
+            i: num(mine.filter((e) => e.type === 'view').length),
+            a: num(mine.filter((e) => e.type === 'answer').length),
           })}
         </p>
+        {questions.length > 0 && (
+          <div className="mt-3">
+            <div className="mb-1 text-sm font-medium">{d.sponsors.questions}</div>
+            <ul className="space-y-1 text-sm">
+              {questions.map((q) => (
+                <li key={q.id} className="rounded-lg bg-page px-3 py-1.5">
+                  {pick(q.text)}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </Card>
     </div>
   );

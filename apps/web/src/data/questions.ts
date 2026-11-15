@@ -5,7 +5,8 @@ import type { Difficulty } from '@quizate/game';
  * first (options are shuffled per match). Religious content is left out on purpose: it needs the content and
  * Sharia review of BRD section 6. Local sample data only; never production content (CLAUDE.md).
  */
-export type Category = 'geography' | 'science' | 'history' | 'sports' | 'general' | 'saudi';
+export type Category =
+  'geography' | 'science' | 'history' | 'sports' | 'general' | 'saudi' | 'literature';
 
 export interface BiText {
   ar: string;
@@ -22,6 +23,8 @@ export interface SeedQuestion {
   /** Correct answer first. */
   options: [BiText, BiText, BiText, BiText];
   campaignId?: string;
+  /** New content that must be approved in the question-review screen before it enters matches. */
+  needsReview?: boolean;
   /** Image questions: a key into QUESTION_IMAGES (data/images.tsx). */
   image?: string;
 }
@@ -46,6 +49,8 @@ function q(
     options: opts as SeedQuestion['options'],
   };
 }
+
+const fresh = (x: SeedQuestion): SeedQuestion => ({ ...x, needsReview: true });
 
 export const SEED_QUESTIONS: SeedQuestion[] = [
   // Easy
@@ -1042,6 +1047,368 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['غاليليو غاليلي', 'Galileo Galilei'],
     ['يوهانس كبلر', 'Johannes Kepler'],
     ['ألبرت أينشتاين', 'Albert Einstein'],
+  ),
+  // Sabbaq CR v3 section 4: 30 sample Literature, Sport and History questions. Owner decision 15 Nov 2026: they
+  // start as `needs_review` and enter matches only once approved in the question-review screen.
+  fresh(
+    q(
+      'literature',
+      'easy',
+      'من الشاعر الملقّب بـ«أمير الشعراء»؟',
+      'Which poet is known as the “Prince of Poets”?',
+      ['أحمد شوقي', 'Ahmed Shawqi'],
+      ['حافظ إبراهيم', 'Hafez Ibrahim'],
+      ['المتنبي', 'Al-Mutanabbi'],
+      ['نزار قباني', 'Nizar Qabbani'],
+    ),
+  ),
+  fresh(
+    q(
+      'literature',
+      'easy',
+      'أي أديب عربي نال جائزة نوبل للآداب عام 1988؟',
+      'Which Arab writer won the Nobel Prize in Literature in 1988?',
+      ['نجيب محفوظ', 'Naguib Mahfouz'],
+      ['طه حسين', 'Taha Hussein'],
+      ['توفيق الحكيم', 'Tawfiq al-Hakim'],
+      ['جبران خليل جبران', 'Kahlil Gibran'],
+    ),
+  ),
+  fresh(
+    q(
+      'literature',
+      'easy',
+      'من مؤلف كتاب «النبي» الذي كُتب بالإنجليزية؟',
+      'Who wrote “The Prophet”, first published in English?',
+      ['جبران خليل جبران', 'Kahlil Gibran'],
+      ['ميخائيل نعيمة', 'Mikhail Naimy'],
+      ['إيليا أبو ماضي', 'Elia Abu Madi'],
+      ['أمين الريحاني', 'Ameen Rihani'],
+    ),
+  ),
+  fresh(
+    q(
+      'literature',
+      'easy',
+      'من الراوية التي تحكي حكايات «ألف ليلة وليلة»؟',
+      'Who narrates the tales of “One Thousand and One Nights”?',
+      ['شهرزاد', 'Scheherazade'],
+      ['دنيازاد', 'Dunyazad'],
+      ['بلقيس', 'Bilqis'],
+      ['عبلة', 'Abla'],
+    ),
+  ),
+  fresh(
+    q(
+      'literature',
+      'easy',
+      'من مؤلف مسرحية «هاملت»؟',
+      'Who wrote the play “Hamlet”?',
+      ['وليم شكسبير', 'William Shakespeare'],
+      ['تشارلز ديكنز', 'Charles Dickens'],
+      ['موليير', 'Molière'],
+      ['غوته', 'Goethe'],
+    ),
+  ),
+  fresh(
+    q(
+      'literature',
+      'medium',
+      'من مؤلف خماسية «مدن الملح»؟',
+      'Who wrote the “Cities of Salt” novels?',
+      ['عبدالرحمن منيف', 'Abdul Rahman Munif'],
+      ['غازي القصيبي', 'Ghazi Al-Gosaibi'],
+      ['نجيب محفوظ', 'Naguib Mahfouz'],
+      ['الطيب صالح', 'Tayeb Salih'],
+    ),
+  ),
+  fresh(
+    q(
+      'literature',
+      'medium',
+      'من مؤلف رواية «موسم الهجرة إلى الشمال»؟',
+      'Who wrote “Season of Migration to the North”?',
+      ['الطيب صالح', 'Tayeb Salih'],
+      ['عبدالرحمن منيف', 'Abdul Rahman Munif'],
+      ['يوسف إدريس', 'Yusuf Idris'],
+      ['حنا مينه', 'Hanna Mina'],
+    ),
+  ),
+  fresh(
+    q(
+      'literature',
+      'medium',
+      'من مؤلف رواية «دون كيخوته»؟',
+      'Who wrote “Don Quixote”?',
+      ['ثيربانتس', 'Miguel de Cervantes'],
+      ['فيكتور هوغو', 'Victor Hugo'],
+      ['دانتي', 'Dante'],
+      ['تولستوي', 'Leo Tolstoy'],
+    ),
+  ),
+  fresh(
+    q(
+      'literature',
+      'medium',
+      'لمن المعلّقة التي مطلعها «قفا نبكِ من ذكرى حبيبٍ ومنزلِ»؟',
+      'Whose Mu’allaqa opens with “Qifa nabki” (“Halt, let us weep”)?',
+      ['امرؤ القيس', 'Imru’ al-Qais'],
+      ['عنترة بن شداد', 'Antarah ibn Shaddad'],
+      ['زهير بن أبي سلمى', 'Zuhayr ibn Abi Sulma'],
+      ['طرفة بن العبد', 'Tarafa ibn al-Abd'],
+    ),
+  ),
+  fresh(
+    q(
+      'literature',
+      'hard',
+      'أي شاعر كانت كنيته «أبو الطيب»؟',
+      'Which poet was known as “Abu al-Tayyib”?',
+      ['المتنبي', 'Al-Mutanabbi'],
+      ['أبو تمام', 'Abu Tammam'],
+      ['البحتري', 'Al-Buhturi'],
+      ['أبو العلاء المعري', 'Al-Ma’arri'],
+    ),
+  ),
+  fresh(
+    q(
+      'literature',
+      'hard',
+      'من مؤلف رواية «شقة الحرية»؟',
+      'Who wrote the novel “Apartment of Freedom” (Shuqqat al-Hurriya)?',
+      ['غازي القصيبي', 'Ghazi Al-Gosaibi'],
+      ['عبده خال', 'Abdo Khal'],
+      ['رجاء عالم', 'Raja Alem'],
+      ['تركي الحمد', 'Turki al-Hamad'],
+    ),
+  ),
+  fresh(
+    q(
+      'literature',
+      'hard',
+      'من نقل «كليلة ودمنة» إلى العربية؟',
+      'Who translated “Kalila wa Dimna” into Arabic?',
+      ['ابن المقفع', 'Ibn al-Muqaffa’'],
+      ['الجاحظ', 'Al-Jahiz'],
+      ['ابن قتيبة', 'Ibn Qutayba'],
+      ['الأصفهاني', 'Al-Isfahani'],
+    ),
+  ),
+  fresh(
+    q(
+      'literature',
+      'hard',
+      'من مؤلف السيرة الذاتية «الأيام»؟',
+      'Who wrote the autobiography “The Days” (Al-Ayyam)?',
+      ['طه حسين', 'Taha Hussein'],
+      ['العقاد', 'Abbas al-Aqqad'],
+      ['المازني', 'Ibrahim al-Mazini'],
+      ['أحمد أمين', 'Ahmad Amin'],
+    ),
+  ),
+  fresh(
+    q(
+      'sports',
+      'easy',
+      'كم لاعباً لكل فريق داخل ملعب كرة السلة؟',
+      'How many players does each basketball team have on the court?',
+      ['5', '5'],
+      ['6', '6'],
+      ['7', '7'],
+      ['4', '4'],
+    ),
+  ),
+  fresh(
+    q(
+      'sports',
+      'easy',
+      'كم عدد الحلقات في شعار الألعاب الأولمبية؟',
+      'How many rings are in the Olympic symbol?',
+      ['5', '5'],
+      ['4', '4'],
+      ['6', '6'],
+      ['7', '7'],
+    ),
+  ),
+  fresh(
+    q(
+      'sports',
+      'easy',
+      'أي دولة استضافت كأس العالم لكرة القدم 2022؟',
+      'Which country hosted the 2022 FIFA World Cup?',
+      ['قطر', 'Qatar'],
+      ['روسيا', 'Russia'],
+      ['البرازيل', 'Brazil'],
+      ['الإمارات', 'UAE'],
+    ),
+  ),
+  fresh(
+    q(
+      'sports',
+      'medium',
+      'أي منتخب هزمه المنتخب السعودي في أولى مبارياته بكأس العالم 2022؟',
+      'Which team did Saudi Arabia beat in its first match of the 2022 World Cup?',
+      ['الأرجنتين', 'Argentina'],
+      ['المكسيك', 'Mexico'],
+      ['بولندا', 'Poland'],
+      ['فرنسا', 'France'],
+    ),
+  ),
+  fresh(
+    q(
+      'sports',
+      'medium',
+      'كم تبلغ مسافة سباق الماراثون تقريباً؟',
+      'About how long is a marathon?',
+      ['42 كم', '42 km'],
+      ['21 كم', '21 km'],
+      ['30 كم', '30 km'],
+      ['50 كم', '50 km'],
+    ),
+  ),
+  fresh(
+    q(
+      'sports',
+      'medium',
+      'في أي رياضة تُستخدم كلمة «لوف» للدلالة على صفر نقاط؟',
+      'In which sport does “love” mean a score of zero?',
+      ['التنس', 'Tennis'],
+      ['الغولف', 'Golf'],
+      ['البيسبول', 'Baseball'],
+      ['الكريكيت', 'Cricket'],
+    ),
+  ),
+  fresh(
+    q(
+      'sports',
+      'medium',
+      'أي منتخب فاز بكأس العالم لكرة القدم أكثر من غيره؟',
+      'Which country has won the FIFA World Cup the most times?',
+      ['البرازيل', 'Brazil'],
+      ['ألمانيا', 'Germany'],
+      ['إيطاليا', 'Italy'],
+      ['الأرجنتين', 'Argentina'],
+    ),
+  ),
+  fresh(
+    q(
+      'sports',
+      'hard',
+      'في أي عام ستستضيف السعودية كأس العالم لكرة القدم؟',
+      'In which year will Saudi Arabia host the FIFA World Cup?',
+      ['2034', '2034'],
+      ['2030', '2030'],
+      ['2026', '2026'],
+      ['2038', '2038'],
+    ),
+  ),
+  fresh(
+    q(
+      'sports',
+      'hard',
+      'في أي مدينة أقيمت أول دورة ألعاب أولمبية حديثة عام 1896؟',
+      'Which city hosted the first modern Olympic Games in 1896?',
+      ['أثينا', 'Athens'],
+      ['باريس', 'Paris'],
+      ['لندن', 'London'],
+      ['روما', 'Rome'],
+    ),
+  ),
+  fresh(
+    q(
+      'sports',
+      'hard',
+      'أي قطعة شطرنج تتحرك قطرياً فقط؟',
+      'Which chess piece moves only diagonally?',
+      ['الفيل', 'Bishop'],
+      ['الرخ', 'Rook'],
+      ['الحصان', 'Knight'],
+      ['الملكة', 'Queen'],
+    ),
+  ),
+  fresh(
+    q(
+      'history',
+      'easy',
+      'في أي عام أُعلن توحيد المملكة العربية السعودية باسمها الحالي؟',
+      'In which year was the Kingdom of Saudi Arabia proclaimed under its current name?',
+      ['1932', '1932'],
+      ['1902', '1902'],
+      ['1953', '1953'],
+      ['1945', '1945'],
+    ),
+  ),
+  fresh(
+    q(
+      'history',
+      'easy',
+      'من أول إنسان مشى على سطح القمر؟',
+      'Who was the first person to walk on the Moon?',
+      ['نيل أرمسترونغ', 'Neil Armstrong'],
+      ['يوري غاغارين', 'Yuri Gagarin'],
+      ['باز ألدرين', 'Buzz Aldrin'],
+      ['جون غلين', 'John Glenn'],
+    ),
+  ),
+  fresh(
+    q(
+      'history',
+      'easy',
+      'في أي عام انتهت الحرب العالمية الثانية؟',
+      'In which year did the Second World War end?',
+      ['1945', '1945'],
+      ['1939', '1939'],
+      ['1918', '1918'],
+      ['1950', '1950'],
+    ),
+  ),
+  fresh(
+    q(
+      'history',
+      'medium',
+      'في أي عام تأسست الدولة السعودية الأولى؟',
+      'In which year was the first Saudi state founded?',
+      ['1727', '1727'],
+      ['1818', '1818'],
+      ['1902', '1902'],
+      ['1824', '1824'],
+    ),
+  ),
+  fresh(
+    q(
+      'history',
+      'medium',
+      'أي حضارة بنت مدينة ماتشو بيتشو؟',
+      'Which civilisation built Machu Picchu?',
+      ['الإنكا', 'The Inca'],
+      ['المايا', 'The Maya'],
+      ['الأزتك', 'The Aztecs'],
+      ['الرومان', 'The Romans'],
+    ),
+  ),
+  fresh(
+    q(
+      'history',
+      'hard',
+      'من نحت مقابر الحِجر (مدائن صالح) في الصخر؟',
+      'Who carved the rock tombs of Hegra (Al-Hijr)?',
+      ['الأنباط', 'The Nabataeans'],
+      ['الفينيقيون', 'The Phoenicians'],
+      ['السبئيون', 'The Sabaeans'],
+      ['الرومان', 'The Romans'],
+    ),
+  ),
+  fresh(
+    q(
+      'history',
+      'hard',
+      'ماذا ساعد حجر رشيد على فكّه؟',
+      'What did the Rosetta Stone help to decipher?',
+      ['الهيروغليفية المصرية', 'Egyptian hieroglyphs'],
+      ['الخط المسماري', 'Cuneiform'],
+      ['خط المسند', 'Musnad script'],
+      ['الأبجدية الفينيقية', 'Phoenician alphabet'],
+    ),
   ),
 ];
 

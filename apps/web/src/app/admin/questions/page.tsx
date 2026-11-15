@@ -12,6 +12,7 @@ import { QuestionImage } from '@/components/QuestionImage';
 const STATUS_TONE = {
   draft: 'neutral',
   in_review: 'warn',
+  needs_review: 'warn',
   published: 'ok',
   retired: 'bad',
 } as const;
@@ -256,7 +257,7 @@ function QuestionPanel({ q, onClose }: { q: Question; onClose: () => void }) {
           </div>
         </dl>
 
-        {q.status === 'in_review' &&
+        {(q.status === 'in_review' || q.status === 'needs_review') &&
           reviewerRole &&
           (q.authorId === me ? (
             <Notice tone="warn">{d.questions.twoPerson}</Notice>

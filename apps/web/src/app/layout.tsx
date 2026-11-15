@@ -22,11 +22,11 @@ const nastaliq = Noto_Nastaliq_Urdu({
 
 export const metadata: Metadata = {
   title: PRODUCT.name,
-  description: `${PRODUCT.name} — 1v1 trivia (sample version)`,
+  description: `${PRODUCT.name} (${PRODUCT.nameAr}) — Knowledge rewarded, competition ignited`,
   robots: { index: false, follow: false },
 };
 
-export const viewport: Viewport = { themeColor: '#0B2238', width: 'device-width', initialScale: 1 };
+export const viewport: Viewport = { themeColor: '#0C5A62', width: 'device-width', initialScale: 1 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (

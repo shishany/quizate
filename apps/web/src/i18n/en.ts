@@ -4,7 +4,8 @@ export const en: Dictionary = {
   common: {
     language: 'Language',
     urduPending: 'The Urdu translation of this question is awaiting review, so it shows in Arabic.',
-    tagline: 'Challenge a nearby player in ten questions',
+    tagline: 'Knowledge rewarded, competition ignited',
+    initiative: 'An initiative of Al-Salihiya Civil Association',
     sample: 'Sample version',
     sampleTip:
       'This is a sample version. Its data lives only in your browser. Please do not enter real personal data.',
@@ -42,6 +43,14 @@ export const en: Dictionary = {
     adminCta: 'Enter the admin console',
   },
   signin: {
+    guardianInvalid: "Enter your guardian's mobile (starts with 5, not your own number).",
+    guardianIntro:
+      "You are 13 to 17, so we need your guardian's consent. We will send a code to their mobile.",
+    guardianLabel: "Guardian's mobile",
+    guardianCode: "Guardian's code",
+    guardianCodeHint:
+      'In the sample version the code is 000000. Your guardian can also confirm later.',
+    guardianSend: 'Send code to guardian',
     methodIntro:
       'Choose how to sign up. A mobile number is enough to play; Nafath verification is needed later for the prize ranking and payouts.',
     methodPhone: 'Sign up with a mobile number',
@@ -128,6 +137,7 @@ export const en: Dictionary = {
     profile: 'Account',
   },
   home: {
+    guardianPending: "Waiting for your guardian's consent before you can play.",
     verifyTitle: 'Verify your account for prizes',
     verifyBody: 'Nafath and your IBAN are needed for the prize ranking and payouts.',
     verifyCta: 'Verify',
@@ -153,7 +163,8 @@ export const en: Dictionary = {
     counted: 'Counted matches',
     opponents: 'Different opponents',
     eligible: 'Qualified for the prize ranking',
-    notEligible: 'To qualify: at least {m} counted matches and {o} different opponents',
+    notEligible:
+      'To qualify for prizes: at least {m} completed matches this month (recorded-opponent matches do not count)',
     monthEnds: 'Ranking closes in',
     days: 'days',
     hours: 'hours',
@@ -161,6 +172,16 @@ export const en: Dictionary = {
     unranked: 'Not ranked yet',
   },
   mm: {
+    stepRating: 'Similar rating ±{band}',
+    stepGhost: 'Recorded opponent',
+    ghostLabel: 'Recorded opponent',
+    friendTitle: 'Challenge a friend',
+    friendBody: 'Create an invite link and send it to a friend for a private match.',
+    friendCta: 'Create invite link',
+    invited:
+      'Private match invite ({code}). The private match starts when your friend connects, which needs the match server; the sample version shows the invite only.',
+    category: 'Category',
+    startChallenge: 'Start the challenge',
     title: 'Finding an opponent',
     searching: 'Searching…',
     waited: 'Waiting: {s} s',
@@ -251,6 +272,9 @@ export const en: Dictionary = {
     again: 'Play again',
   },
   lb: {
+    prizeZone: 'Prize zone',
+    youthBadge: 'Youth award',
+    rating: 'rating',
     title: 'Ranking',
     monthly: 'This month',
     allTime: 'All time',
@@ -379,6 +403,7 @@ export const en: Dictionary = {
     statuses: {
       draft: 'Draft',
       in_review: 'In review',
+      needs_review: 'Needs review',
       published: 'Published',
       retired: 'Retired',
     },
@@ -390,6 +415,7 @@ export const en: Dictionary = {
       sports: 'Sports',
       general: 'General knowledge',
       saudi: 'Saudi Arabia',
+      literature: 'Literature',
     },
     count: 'Count: {n}',
     question: 'Question',
@@ -451,6 +477,12 @@ export const en: Dictionary = {
     reviewTop: 'The top 50 are reviewed for fair play before provisional results.',
   },
   fraud: {
+    collusionTitle: 'Collusion alerts',
+    collusionNone: 'No alerts.',
+    collusionMatches: 'matches within 7 days',
+    collusionWins: 'Won every time by',
+    collusionRule:
+      'Rule: the same two players with 3 or more matches in 7 days and the same winner every time. The limit of one match per pair per 24 hours stays. An analyst decides; nothing is banned automatically.',
     title: 'Fair play',
     signal: 'Signal',
     players: 'Players',
@@ -476,7 +508,26 @@ export const en: Dictionary = {
     decision: 'Decision',
     noAutoBan: 'No account is suspended automatically; an analyst always decides.',
   },
+  stats: {
+    title: 'Live stats',
+    players: 'Registered players',
+    matchesToday: 'Matches today',
+    top5: 'Top 5 this month',
+    note: 'Public, read-only page with aggregated figures and no personal data.',
+  },
   sponsors: {
+    billable: 'Billable views',
+    billableNote:
+      'A billable view = the question shown on screen for at least 3 seconds. Funding = billable views × the campaign price per 1,000 (default SAR 40).',
+    setPrice: 'Price per 1,000 (SAR)',
+    qualityNote: 'Answers and % correct are quality metrics only; they are not billed.',
+    campaigns: 'Campaigns',
+    quota: 'View quota',
+    price: 'Price per 1,000 views',
+    priceValue: 'SAR {sar}',
+    ended: 'Ended',
+    exportCsv: 'Export CSV',
+    day: 'Day',
     title: 'Sponsors',
     campaign: 'Campaign',
     campaignName: 'Date Oasis campaign (sample)',
@@ -543,6 +594,46 @@ export const en: Dictionary = {
     },
   },
   prizes: {
+    poolTitle: 'Prize pool for {month}',
+    funding: 'Sponsor funding this month',
+    tableTotal: 'Prize table total',
+    pool: 'Pool (the lower of the two)',
+    poolNote: 'Every rank is scaled by pool ÷ 16,500 and rounded down to SAR 10.',
+    scaled: 'Scaled',
+    queue: 'Payout queue (top 10 cash-eligible)',
+    queueEmpty:
+      'No player qualifies yet: it takes {m} completed matches this month, age 18+ and an ID checked by an admin.',
+    idChecked: 'ID checked',
+    ibanName: 'IBAN certificate name matches the ID',
+    reason: 'Reason for this action (required)',
+    approve: 'Approve',
+    markPaid: 'Mark paid',
+    reject: 'Reject',
+    youthTitle: 'Youth award (in kind)',
+    youthNote:
+      'An admin records an in-kind award for the top youth players. There are no cash fields.',
+    youthAward: 'In-kind award (e.g. book voucher or certificate)',
+    recordAward: 'Record award',
+    log: 'Action log',
+    logEmpty: 'No actions yet.',
+    queueNote:
+      'Built at month close from the top 10 with at least 60 matches whose date of birth says 18+. If a check fails, the place passes to the next eligible player and this is logged.',
+    checkPassed: 'Check passed',
+    checkFailed: 'Check failed',
+    failure: 'Reason it failed',
+    placePassed: 'place {n} passed to the next player',
+    status: {
+      id_check_pending: 'ID check pending',
+      cash_eligible: 'Cash eligible',
+      paid: 'Paid',
+    },
+    skip: {
+      not_qualified: 'Not qualified',
+      under_18_by_dob: 'Under 18 by date of birth',
+      id_mismatch: 'ID does not match',
+      iban_name_mismatch: 'IBAN name does not match the ID',
+      under_18: 'ID shows under 18',
+    },
     title: 'Prizes',
     locked:
       'Cash prizes are built but switched off until the written legal opinion (Gate G1). They are shown as "planned", never promised.',

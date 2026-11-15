@@ -7,16 +7,19 @@ import { SignIn } from '@/components/player/SignIn';
 import { LangToggle, Loading, ProductMark, SampleChip } from '@/components/ui';
 import { useT } from '@/i18n';
 import { live } from '@/lib/live';
+import { isOn } from '@quizate/game';
 import { productName } from '@/lib/product';
 import { useStore } from '@/lib/store';
 
-const NAV = [
+const ALL_NAV = [
   { href: '/play', key: 'home', icon: '⌂' },
   { href: '/play/ladder', key: 'ladder', icon: '⬆' },
   { href: '/play/leaderboard', key: 'leaderboard', icon: '▤' },
   { href: '/play/history', key: 'history', icon: '◷' },
   { href: '/play/profile', key: 'profile', icon: '◉' },
 ] as const;
+
+const NAV = ALL_NAV.filter((item) => item.key !== 'ladder' || isOn('ladder'));
 
 const FOCUS_ROUTES = ['/play/ranked', '/play/practice', '/play/speed', '/play/mirror'];
 

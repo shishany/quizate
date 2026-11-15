@@ -9,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { isOn, type CheckFailure, type SponsorEvent } from '@quizate/game';
 import {
   claimState,
   riyadhDayKey,
@@ -31,6 +32,8 @@ import type {
   Player,
   Question,
   QuestionAction,
+  PayoutRecord,
+  YouthAward,
 } from './types';
 
 export type Action =
@@ -48,6 +51,7 @@ export type Action =
       abandoned?: boolean;
       flag?: { evidence: { ar: string; en: string } };
       sponsored?: { shown: number; answered: number; correct: number };
+      sponsorEvents?: SponsorEvent[];
       xp?: LedgerEntry | null;
     }
   | { type: 'mirrorFinished'; day: string; result: MirrorResult }
@@ -74,7 +78,18 @@ export type Action =
       >;
     }
   | { type: 'config'; key: ConfigKey; value: number; reason: string }
-  | { type: 'fraud'; id: string; status: FraudStatus; reason: string };
+  | { type: 'fraud'; id: string; status: FraudStatus; reason: string }
+  | {
+      type: 'payoutCheck';
+      month: string;
+      playerId: string;
+      result: 'passed' | 'failed';
+      failure?: CheckFailure;
+      reason: string;
+    }
+  | { type: 'payoutPaid'; month: string; playerId: string; reason: string }
+  | { type: 'youthAward'; month: string; playerId: string; award: string }
+  | { type: 'campaignPrice'; campaignId: string; halalas: number; reason: string };
 
 /** Editable configuration keys (FR-27), each a number at a path in GameConfig. */
 export type ConfigKey =
@@ -121,6 +136,9 @@ export function countedThisMonth(state: DemoState, at: string): number {
   return state.myResults.filter((r) => riyadhMonthKey(r.at) === month).length;
 }
 
+/** CR v3 section 9: who may review payouts and record youth awards. */
+const PRIZE_ROLES: AdminRole[] = ['super_admin', 'prize_officer', 'finance_approver'];
+
 let auditSeq = 0;
 function audit(
   state: DemoState,
@@ -161,7 +179,9 @@ export function questionActionAllowed(
       return editor && q.status === 'draft';
     case 'approved':
     case 'rejected':
-      return reviewer && q.status === 'in_review' && q.authorId !== me;
+      return (
+        reviewer && (q.status === 'in_review' || q.status === 'needs_review') && q.authorId !== me
+      );
     case 'retired':
     case 'voided':
       return reviewer && q.status === 'published';
@@ -175,7 +195,10 @@ export function reducer(state: DemoState, action: Action): DemoState {
     case 'hydrate':
       return action.state;
     case 'locale':
-      return { ...state, locale: action.locale };
+      // Urdu is hidden in the MVP (flag locale_ur).
+      return action.locale === 'ur' && !isOn('locale_ur')
+        ? state
+        : { ...state, locale: action.locale };
     case 'reset':
       return { ...initialState(), locale: state.locale };
     case 'signIn':
@@ -185,7 +208,16 @@ export function reducer(state: DemoState, action: Action): DemoState {
     case 'restoreAccount':
       return state.savedAccount ? { ...state, player: state.savedAccount } : state;
     case 'matchFinished': {
-      const { summary, ranked, seenIds = [], abandoned, flag, sponsored, xp } = action;
+      const {
+        summary,
+        ranked,
+        seenIds = [],
+        abandoned,
+        flag,
+        sponsored,
+        sponsorEvents = [],
+        xp,
+      } = action;
       const seen = { ...state.seen };
       for (const id of seenIds) seen[id] = summary.at;
       const player = state.player ? { ...state.player, rating: summary.ratingAfter } : null;
@@ -220,6 +252,9 @@ export function reducer(state: DemoState, action: Action): DemoState {
         abandons: abandoned ? [...state.abandons, summary.at] : state.abandons,
         fraud,
         sponsorTally: tally,
+        sponsorEvents: sponsorEvents.length
+          ? [...state.sponsorEvents, ...sponsorEvents]
+          : state.sponsorEvents,
         activeRanked: state.activeRanked?.id === summary.id ? null : state.activeRanked,
         xp: xp ? [...state.xp, xp] : state.xp,
         activeDays: summary.forfeit
@@ -507,6 +542,95 @@ export function reducer(state: DemoState, action: Action): DemoState {
         }),
       };
     }
+    case 'payoutCheck': {
+      if (!state.adminRole || !PRIZE_ROLES.includes(state.adminRole) || !action.reason.trim())
+        return state;
+      const key = `${action.month}:${action.playerId}`;
+      if (state.payouts[key]) return state; // one check per player and month; a failed place has moved on
+      const rec: PayoutRecord = {
+        month: action.month,
+        playerId: action.playerId,
+        result: action.result,
+        ...(action.failure ? { failure: action.failure } : {}),
+      };
+      // A passed ID + IBAN-name check sets id_verified, which makes an 18+ player cash eligible.
+      const player =
+        action.result === 'passed' && state.player?.id === action.playerId
+          ? { ...state.player, idVerified: true }
+          : state.player;
+      const logged = audit(state, `payout.check_${action.result}`, key, action.reason, {
+        before: 'id_check_pending',
+        after: action.result === 'passed' ? 'cash_eligible' : (action.failure ?? 'failed'),
+      });
+      return {
+        ...state,
+        player,
+        payouts: { ...state.payouts, [key]: rec },
+        audit:
+          action.result === 'failed'
+            ? audit(
+                { ...state, audit: logged },
+                'payout.place_reassigned',
+                key,
+                'place passes to the next eligible player',
+              )
+            : logged,
+      };
+    }
+    case 'payoutPaid': {
+      if (!state.adminRole || !PRIZE_ROLES.includes(state.adminRole) || !action.reason.trim())
+        return state;
+      const key = `${action.month}:${action.playerId}`;
+      const rec = state.payouts[key];
+      if (rec?.result !== 'passed' || rec.paid) return state;
+      return {
+        ...state,
+        payouts: { ...state.payouts, [key]: { ...rec, paid: true } },
+        audit: audit(state, 'payout.paid', key, action.reason, {
+          before: 'cash_eligible',
+          after: 'paid',
+        }),
+      };
+    }
+    case 'campaignPrice': {
+      const role = state.adminRole;
+      if (!role || !['super_admin', 'sponsor_manager'].includes(role) || !action.reason.trim())
+        return state;
+      if (!Number.isInteger(action.halalas) || action.halalas <= 0) return state;
+      const before =
+        state.campaignPrices[action.campaignId] ?? state.config.sponsor.defaultPricePer1000Halalas;
+      return {
+        ...state,
+        campaignPrices: { ...state.campaignPrices, [action.campaignId]: action.halalas },
+        audit: audit(state, 'campaign.price', action.campaignId, action.reason, {
+          before: String(before),
+          after: String(action.halalas),
+        }),
+      };
+    }
+    case 'youthAward': {
+      if (!state.adminRole || !PRIZE_ROLES.includes(state.adminRole) || !action.award.trim())
+        return state;
+      const at = new Date().toISOString();
+      const entry: YouthAward = {
+        id: `ya-${Date.now()}`,
+        month: action.month,
+        playerId: action.playerId,
+        award: action.award.trim(),
+        at,
+        actor: ADMIN_USERS[state.adminRole].id,
+      };
+      return {
+        ...state,
+        youthAwards: [entry, ...state.youthAwards],
+        audit: audit(
+          state,
+          'youth_award.record',
+          `${action.month}:${action.playerId}`,
+          entry.award,
+        ),
+      };
+    }
     case 'fraud': {
       const f = state.fraud.find((x) => x.id === action.id);
       if (
@@ -539,7 +663,8 @@ function load(): DemoState {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as DemoState;
-      if (parsed.version === STATE_VERSION) return parsed;
+      if (parsed.version === STATE_VERSION)
+        return parsed.locale === 'ur' && !isOn('locale_ur') ? { ...parsed, locale: 'ar' } : parsed;
     }
   } catch {
     // Storage blocked or corrupt: start from the sample.

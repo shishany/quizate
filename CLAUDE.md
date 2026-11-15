@@ -1,13 +1,14 @@
-# Quizate — project brief
+# Sabbaq (سبّاق, formerly Quizate) — project brief
 
 Read this first in every session and keep it current. Update it whenever a decision changes.
 
-"Quizate" (Arabic: كويزاتي) is a working name. The product name lives in one constant, `PRODUCT` in
+The product is **Sabbaq** (سبّاق), formerly the working name "Quizate"; the repo and subdomain stay "quizate" until
+the owner confirms. The product name lives in one constant, `PRODUCT` in
 `packages/shared/src/product.ts`; never type it anywhere else in code or UI strings.
 
 ## Product
 
-Free, 18+, Arabic-first (then English, then Urdu) 1v1 trivia game for Saudi Arabia. Two players are matched
+Free, 13+ (guardian consent for 13-17; cash prizes 18+ only), Arabic-first (then English, then Urdu) 1v1 trivia game for Saudi Arabia. Two players are matched
 (nearest first, then nationwide), answer the same 10 questions under a server timer, and earn points. A monthly
 leaderboard ranks qualified players. An engagement layer (XP levels, ranked ladder, daily loop, Mirror Challenge,
 later clubs and team modes) drives retention. Revenue: sponsored questions/campaigns, ads, corporate SaaS. Cash prizes
@@ -50,12 +51,14 @@ file win.
 6. No in-app wallet, stored value, purchasable points or coins, paid attempts, paid entry or paid random rewards.
    Coins are earned only: never bought, gifted, traded, cashed or used as an entry fee. Points and XP have no cash
    value.
-7. Anyone with a Saudi mobile number (OTP) can play, with a declared date of birth (minimum age 18 per BRD v1.1,
-   configurable). Nafath (verified date of birth, under-18 refused) plus an IBAN verified as owned by the same ID
-   number are the identity check for payments: required before the prize ranking by default (config
-   `identity.iban_required_at` = `signup` | `ranked` | `prize`, default `prize`; owner decision 2026-10-30, changing
-   BRD v1.1's sign-up default). One account per mobile number, and per national ID / Iqama once verified. Prize
-   payouts only by bank transfer to that verified IBAN.
+7. Age (owner decision, 15 Nov 2026): anyone 13+ with a Saudi mobile number (OTP) and a declared date of birth can
+   sign up; under 13 is refused. Players aged 13-17 are `age_group='youth'` and play only once a guardian has
+   consented (OTP to the guardian's mobile, consent record kept). Cash prizes only for ID-verified players aged 18+
+   (`cash_eligible = age >= 18 AND id_verified`; an admin checks the ID and the IBAN certificate name at payout).
+   Youth players compete on the same leaderboard and can win an in-kind youth award, never cash. Nafath stays
+   optional at sign-in (`nafath_required=false`). One account per mobile number, and per national ID / Iqama once
+   verified. Prize payouts only by bank transfer to the verified IBAN, and only once `prizes.enabled` is on with a
+   legal approval record (rule 5).
 8. Personal data stays in the Saudi region. Location is used only for an active queue ticket, rounded to ~1 km, and
    deleted when the match starts. Opponents see city + distance band only. National ID and IBAN are field-encrypted
    and never logged.
@@ -161,3 +164,14 @@ written for every admin action; strings present in ar, en and ur; no TODOs in mo
 
 - [x] Prompt 1 — monorepo scaffold and local infrastructure (branch `prompt-01-scaffold`)
 - [x] Web demo — `packages/game` and `apps/web` (branch `demo-web`)
+
+## Sabbaq change request v3 (2026-11-15, branch `sabbaq-mvp`)
+
+- Results and open questions: `SABBAQ_CHANGES.md`, `SABBAQ_QUESTIONS.md`. Where the request conflicts with the rules
+  above (13+ age, cash eligibility, monthly Elo leaderboard), the request was followed and the conflict is listed in
+  the questions; `prizes.enabled` still defaults to false.
+- New rules in `packages/game`: `features.ts` (MVP flags), `age.ts`, `categories.ts`, `board.ts` (prize-zone and youth
+  badges), `ghost.ts` (ghost opponent, invite codes), `sponsor.ts` (campaigns, events, report, funding); scoring,
+  monthly rating, prizes and collusion rules extended in place. New config keys in `docs/CONFIG.md`.
+- Palette tokens: `apps/web/src/app/globals.css` (`primary`, `action`, `highlight`, `bg`, `card`, `ink`, `info`).
+- New pages: `/stats` (public live stats); `/admin/sponsors` and `/admin/prizes` rewritten.

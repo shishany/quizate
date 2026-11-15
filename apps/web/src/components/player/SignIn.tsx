@@ -5,7 +5,8 @@ import { Badge, Button, Card, LangToggle, Notice, ProductMark, SampleChip } from
 import { useT } from '@/i18n';
 import { Field, IbanVerify, NafathVerify, inputClass } from '@/components/player/Verify';
 import { maskNationalId, nationalIdValid } from '@/lib/identity';
-import { ageOn, displayNameValid } from '@/lib/moderation';
+import { AGE, signupAge } from '@quizate/game';
+import { displayNameValid } from '@/lib/moderation';
 import { productName } from '@/lib/product';
 import { CITIES, SAMPLE_CODE } from '@/lib/sample';
 import { useStore } from '@/lib/store';
@@ -13,8 +14,13 @@ import type { Player } from '@/lib/types';
 
 const TERMS_VERSION = '1.1';
 const PRIVACY_VERSION = '1.1';
-/** Minimum age to play, declared at mobile sign-up; Nafath verifies it before payments (BR-15). BRD v1.1: 18. */
-const MIN_AGE = 18;
+/** CR v3 section 3: 13+ can sign up; 13-17 need a guardian's consent (OTP to the guardian's mobile). */
+const MIN_AGE = AGE.min;
+
+async function sha256Hex(text: string): Promise<string> {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
 
 /**
  * Sign-up and sign-in. In the sample version Nafath, the SMS and the IBAN check are simulated (architecture rule 12).
@@ -210,6 +216,12 @@ function Register() {
   const [name, setName] = useState('');
   const [city, setCity] = useState('riyadh');
   const [dob, setDob] = useState('');
+  const [guardian, setGuardian] = useState('');
+  const [guardianSent, setGuardianSent] = useState(false);
+  const [guardianCode, setGuardianCode] = useState('');
+  const birth = identity?.birthDate ?? dob;
+  const ageCheck = birth ? signupAge(birth, now) : null;
+  const youth = ageCheck?.ok === true && ageCheck.ageGroup === 'youth';
   const [iban, setIban] = useState<string | null>(null);
   const [consents, setConsents] = useState({
     terms: false,
@@ -244,14 +256,27 @@ function Register() {
     if (!displayNameValid(name)) return setError(d.signin.nameInvalid);
     if (!identity) {
       if (!dob) return setError(d.signin.dobRequired);
-      if (ageOn(dob, now) < MIN_AGE) return setError(fill(d.signin.underMinAge, { n: MIN_AGE }));
+      if (!signupAge(dob, now).ok) return setError(fill(d.signin.underMinAge, { n: MIN_AGE }));
+    }
+    if (ageCheck && !ageCheck.ok) return setError(fill(d.signin.underMinAge, { n: MIN_AGE }));
+    {
+      if (youth) {
+        if (!/^5\d{8}$/.test(guardian) || guardian === phone)
+          return setError(d.signin.guardianInvalid);
+        if (guardianSent && guardianCode && guardianCode !== SAMPLE_CODE)
+          return setError(d.signin.codeInvalid);
+      }
     }
     next();
   }
 
-  function create() {
+  async function create() {
     if (!consents.terms || !consents.privacy) return setError(d.signin.consentRequired);
     const at = now.toISOString();
+    const granted = youth && guardianSent && guardianCode === SAMPLE_CODE;
+    const guardianConsent = granted
+      ? { at, guardianPhoneHash: await sha256Hex(`+966${guardian}`) }
+      : null;
     const player: Player = {
       id: 'me',
       name: name.trim(),
@@ -264,6 +289,10 @@ function Register() {
       cityId: city,
       rating: 1200,
       createdAt: at,
+      ageGroup: youth ? 'youth' : 'adult',
+      consentStatus: youth ? (granted ? 'granted' : 'pending') : 'not_required',
+      guardianConsent,
+      idVerified: false,
       consents: [
         { type: 'terms', version: TERMS_VERSION, grantedAt: at },
         { type: 'privacy', version: PRIVACY_VERSION, grantedAt: at },
@@ -391,6 +420,43 @@ function Register() {
                 onChange={(e) => setDob(e.target.value)}
               />
             </Field>
+          )}
+          {youth && (
+            <div className="space-y-3 rounded-xl bg-info/60 p-3">
+              <p className="text-sm">{d.signin.guardianIntro}</p>
+              <Field label={d.signin.guardianLabel}>
+                <input
+                  className={inputClass}
+                  inputMode="numeric"
+                  dir="ltr"
+                  placeholder="5XXXXXXXX"
+                  value={guardian}
+                  onChange={(e) => setGuardian(e.target.value.replace(/\D/g, '').slice(0, 9))}
+                />
+              </Field>
+              {guardianSent ? (
+                <Field label={d.signin.guardianCode} hint={d.signin.guardianCodeHint}>
+                  <input
+                    className={inputClass}
+                    inputMode="numeric"
+                    dir="ltr"
+                    value={guardianCode}
+                    onChange={(e) => setGuardianCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  />
+                </Field>
+              ) : (
+                <Button
+                  variant="secondary"
+                  onClick={() =>
+                    /^5\d{8}$/.test(guardian)
+                      ? setGuardianSent(true)
+                      : setError(d.signin.guardianInvalid)
+                  }
+                >
+                  {d.signin.guardianSend}
+                </Button>
+              )}
+            </div>
           )}
           <Field label={d.signin.cityLabel}>
             <select className={inputClass} value={city} onChange={(e) => setCity(e.target.value)}>

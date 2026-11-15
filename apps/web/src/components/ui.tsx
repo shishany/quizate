@@ -1,6 +1,7 @@
 'use client';
 
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import { isOn } from '@quizate/game';
 import { LANGUAGE_NAMES, useT } from '@/i18n';
 import type { Locale } from '@/lib/types';
 import { useStore } from '@/lib/store';
@@ -8,7 +9,8 @@ import { useStore } from '@/lib/store';
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
 const VARIANTS: Record<Variant, string> = {
-  primary: 'bg-brand-gradient text-white shadow-sm hover:opacity-95 disabled:opacity-50',
+  // Fill chosen by size below: `action` only behind large bold labels, `action-strong` behind smaller white text.
+  primary: 'text-white shadow-sm hover:opacity-95 disabled:opacity-50',
   secondary: 'border border-line bg-white text-ink hover:bg-slate-50 disabled:opacity-50',
   ghost: 'text-brand hover:bg-brand/5 disabled:opacity-50',
   danger: 'border border-bad/30 bg-white text-bad hover:bg-bad-bg disabled:opacity-50',
@@ -20,16 +22,19 @@ export function Button({
   className = '',
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: 'sm' | 'md' | 'lg' }) {
+  // WCAG AA: white on action #E7472E is about 3.6:1, enough only for large bold text (>= 18.66px bold), so the
+  // lg size uses a 19px bold label on `action`; sm and md use `action-strong` #C93A22 (about 5.1:1).
   const sizes = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2.5 text-sm',
-    lg: 'px-5 py-3.5 text-base',
+    sm: 'px-3 py-1.5 text-sm font-semibold',
+    md: 'px-4 py-2.5 text-sm font-semibold',
+    lg: 'px-5 py-3 text-[19px] font-bold',
   };
+  const fill = variant === 'primary' ? (size === 'lg' ? 'bg-action' : 'bg-action-strong') : '';
   return (
     <button
       type="button"
       {...props}
-      className={`inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-colors disabled:cursor-not-allowed ${sizes[size]} ${VARIANTS[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-xl transition-colors disabled:cursor-not-allowed ${sizes[size]} ${VARIANTS[variant]} ${fill} ${className}`}
     />
   );
 }
@@ -111,18 +116,20 @@ export function LangToggle({ className = '' }: { className?: string }) {
       aria-label={d.common.language}
       className={`inline-flex rounded-full border border-line bg-white p-0.5 ${className}`}
     >
-      {(Object.keys(LANGUAGE_NAMES) as Locale[]).map((l) => (
-        <button
-          key={l}
-          type="button"
-          lang={l}
-          aria-pressed={state.locale === l}
-          onClick={() => dispatch({ type: 'locale', locale: l })}
-          className={`rounded-full px-2.5 py-0.5 text-xs font-semibold leading-6 ${state.locale === l ? 'bg-navy text-white' : 'text-muted hover:text-ink'}`}
-        >
-          {l === 'en' ? 'EN' : LANGUAGE_NAMES[l]}
-        </button>
-      ))}
+      {(Object.keys(LANGUAGE_NAMES) as Locale[])
+        .filter((l) => l !== 'ur' || isOn('locale_ur'))
+        .map((l) => (
+          <button
+            key={l}
+            type="button"
+            lang={l}
+            aria-pressed={state.locale === l}
+            onClick={() => dispatch({ type: 'locale', locale: l })}
+            className={`rounded-full px-2.5 py-0.5 text-xs font-semibold leading-6 ${state.locale === l ? 'bg-navy text-white' : 'text-muted hover:text-ink'}`}
+          >
+            {l === 'en' ? 'EN' : LANGUAGE_NAMES[l]}
+          </button>
+        ))}
     </div>
   );
 }

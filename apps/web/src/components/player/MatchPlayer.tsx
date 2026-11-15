@@ -10,6 +10,7 @@ import type { BiText } from '@/data/questions';
 import type { Question } from '@/lib/types';
 import { QuestionImage } from '@/components/QuestionImage';
 import { SponsorMessage } from '@/components/player/SponsorMessage';
+import { sponsorForCampaign } from '@/data/sponsors';
 
 export interface Opponent {
   id: string;
@@ -258,6 +259,11 @@ export function MatchPlayer({
               </span>
             )}
           </h2>
+          {q.campaignId && sponsorForCampaign(q.campaignId) && (
+            <p className="-mt-2 mb-3 rounded-lg bg-highlight/20 px-3 py-1.5 text-sm font-semibold text-gold-ink">
+              {fill(d.match.sponsoredBy, { name: pick(sponsorForCampaign(q.campaignId)!.name) })}
+            </p>
+          )}
           <div className="grid gap-2.5">
             {(orders[index] ?? []).map((opt, pos) => {
               const isMine = myAnswer?.option === opt;

@@ -28,6 +28,8 @@ import {
   type Difficulty,
   type RankedResult,
   type SelectableQuestion,
+  totalAnswerMs,
+  monthlyRating,
 } from './index.js';
 
 const ans = (correct: boolean, latencyMs: number | null = 3000): AnswerRecord => ({
@@ -37,19 +39,27 @@ const ans = (correct: boolean, latencyMs: number | null = 3000): AnswerRecord =>
 });
 
 describe('scoring', () => {
-  it('BR-01: 10 points per correct answer, 0 for wrong or timeout, max 100', () => {
-    expect(matchScore([ans(true), ans(false), ans(false, null)], cfg)).toBe(10);
+  it('CR v3 s5: correct = clamp(round(10 - 0.5 x seconds), 5, 10), wrong or timeout 0, max 100', () => {
+    expect(cfg.questionSeconds).toBe(10);
+    expect(matchScore([ans(true, 0)], cfg)).toBe(10);
+    expect(matchScore([ans(true, 3000)], cfg)).toBe(9); // 10 - 1.5 = 8.5 -> 9 (round half up)
+    expect(matchScore([ans(true, 4000)], cfg)).toBe(8);
+    expect(matchScore([ans(true, 9900)], cfg)).toBe(5);
+    expect(matchScore([ans(false, 1000), ans(true, null)], cfg)).toBe(0);
     expect(
       matchScore(
-        Array.from({ length: 10 }, () => ans(true)),
+        Array.from({ length: 10 }, () => ans(true, 500)),
         cfg,
       ),
     ).toBe(100);
+    expect(averageLatencyMs([ans(true, 1000), ans(false, 3000), ans(false, null)])).toBe(2000);
   });
 
-  it('BR-02: speed adds nothing to the score and is kept for tie-breaks', () => {
-    expect(matchScore([ans(true, 900)], cfg)).toBe(matchScore([ans(true, 14000)], cfg));
-    expect(averageLatencyMs([ans(true, 1000), ans(false, 3000), ans(false, null)])).toBe(2000);
+  it('CR v3 s5: tie goes to the lower total answer time', () => {
+    expect(outcomeFor(50, 50, 30_000, 31_000)).toBe('win');
+    expect(outcomeFor(50, 50, 31_000, 30_000)).toBe('loss');
+    expect(outcomeFor(50, 50, 30_000, 30_000)).toBe('draw');
+    expect(totalAnswerMs([ans(true, 2000), ans(false, null)], cfg)).toBe(12_000);
   });
 
   it('BR-03: higher score wins, equal is a draw', () => {
@@ -92,12 +102,31 @@ describe('monthly ranking', () => {
     expect(riyadhMonthKey('2026-10-31T20:59:59Z')).toBe('2026-10');
   });
 
-  it('BR-08: eligible with at least 20 qualified matches against at least 10 distinct opponents', () => {
-    const twenty = Array.from({ length: 20 }, (_, i) => result(i));
-    expect(standingFor('p', twenty, '2026-10', cfg).eligible).toBe(true);
-    const fewOpponents = twenty.map((r, i) => ({ ...r, opponentId: `o${i % 9}` }));
-    expect(standingFor('p', fewOpponents, '2026-10', cfg).eligible).toBe(false);
-    expect(standingFor('p', twenty.slice(0, 19), '2026-10', cfg).eligible).toBe(false);
+  it('CR v3 s6: eligible with at least 60 completed matches; ghost matches do not count; no opponent rule', () => {
+    const sixty = Array.from({ length: 60 }, (_, i) => ({
+      ...result(i % 28),
+      matchId: `m${i}`,
+      opponentId: 'o1',
+    }));
+    expect(standingFor('p', sixty, '2026-10', cfg).eligible).toBe(true);
+    expect(standingFor('p', sixty.slice(0, 59), '2026-10', cfg).eligible).toBe(false);
+    const withGhost = sixty.map((r, i) => (i === 0 ? { ...r, ghost: true } : r));
+    expect(standingFor('p', withGhost, '2026-10', cfg).qualifyingMatches).toBe(59);
+    expect(standingFor('p', withGhost, '2026-10', cfg).eligible).toBe(false);
+  });
+
+  it('CR v3 s6: monthly rating starts at 1,000 and replays the month; ghost matches count only behind the flag', () => {
+    expect(monthlyRating([], '2026-10', cfg)).toEqual({ rating: 1000, history: [] });
+    expect(monthlyRating([result(1)], '2026-10', cfg).rating).toBe(1016);
+    const ghost = [{ ...result(1), ghost: true }];
+    expect(monthlyRating(ghost, '2026-10', cfg)).toEqual({ rating: 1000, history: [] });
+    expect(monthlyRating(ghost, '2026-10', cfg, true).rating).toBe(1016);
+    expect(standingFor('p', ghost, '2026-10', cfg)).toMatchObject({
+      points: 0,
+      counted: 0,
+      qualifyingMatches: 0,
+    });
+    expect(monthlyRating([result(1)], '2026-11', cfg).rating).toBe(1000);
   });
 
   it('BR-10: points, then accuracy, then average time, then who reached the points first', () => {
@@ -131,11 +160,11 @@ describe('monthly ranking', () => {
 });
 
 describe('rating', () => {
-  it('BR-09: Elo with K=24; equal ratings move by 12', () => {
-    expect(updateRatings(1200, 1200, 'win', cfg)).toEqual({ a: 1212, b: 1188 });
-    expect(updateRatings(1200, 1200, 'draw', cfg)).toEqual({ a: 1200, b: 1200 });
+  it('CR v3 s6: Elo with K=32; equal ratings move by 16; beating a stronger player gains more', () => {
+    expect(updateRatings(1000, 1000, 'win', cfg)).toEqual({ a: 1016, b: 984 });
+    expect(updateRatings(1000, 1000, 'draw', cfg)).toEqual({ a: 1000, b: 1000 });
     const upset = updateRatings(1000, 1400, 'win', cfg);
-    expect(upset.a - 1000).toBeGreaterThan(12);
+    expect(upset.a - 1000).toBeGreaterThan(16);
   });
 });
 
@@ -179,15 +208,27 @@ describe('limits', () => {
   });
 });
 
+// The BRD's nearby-first steps stay available behind `nearby_matching` (off in Sabbaq's MVP); tested on their own config.
+const nearbyCfg = {
+  ...cfg,
+  matchmaking: [
+    { fromSeconds: 0, maxKm: 10, ratingBand: 150, sameCity: false, offerPractice: false },
+    { fromSeconds: 10, maxKm: 50, ratingBand: 250, sameCity: false, offerPractice: false },
+    { fromSeconds: 20, maxKm: null, ratingBand: null, sameCity: true, offerPractice: false },
+    { fromSeconds: 30, maxKm: null, ratingBand: null, sameCity: false, offerPractice: false },
+    { fromSeconds: 60, maxKm: null, ratingBand: null, sameCity: false, offerPractice: true },
+  ],
+};
+
 describe('matchmaking (BRD section 4, FR-05)', () => {
   const me = { id: 'me', rating: 1200, cityId: 'riyadh', location: { lat: 24.71, lng: 46.68 } };
 
   it('widens the search by wait time', () => {
-    expect(searchStep(0, cfg).step).toMatchObject({ maxKm: 10, ratingBand: 150 });
-    expect(searchStep(12, cfg).step).toMatchObject({ maxKm: 50, ratingBand: 250 });
-    expect(searchStep(25, cfg).step).toMatchObject({ sameCity: true });
-    expect(searchStep(45, cfg).index).toBe(3);
-    expect(searchStep(61, cfg).step.offerPractice).toBe(true);
+    expect(searchStep(0, nearbyCfg).step).toMatchObject({ maxKm: 10, ratingBand: 150 });
+    expect(searchStep(12, nearbyCfg).step).toMatchObject({ maxKm: 50, ratingBand: 250 });
+    expect(searchStep(25, nearbyCfg).step).toMatchObject({ sameCity: true });
+    expect(searchStep(45, nearbyCfg).index).toBe(3);
+    expect(searchStep(61, nearbyCfg).step.offerPractice).toBe(true);
   });
 
   it('prefers near players within the rating band, then falls back nationwide', () => {
@@ -203,12 +244,12 @@ describe('matchmaking (BRD section 4, FR-05)', () => {
       cityId: 'jeddah',
       location: { lat: 21.54, lng: 39.17 },
     };
-    expect(findOpponent(me, [near, farStrong], 0, cfg)).toMatchObject({
+    expect(findOpponent(me, [near, farStrong], 0, nearbyCfg)).toMatchObject({
       opponent: { id: 'near' },
       band: 'under10',
     });
-    expect(findOpponent(me, [farStrong], 5, cfg)).toBeNull();
-    expect(findOpponent(me, [farStrong], 35, cfg)).toMatchObject({
+    expect(findOpponent(me, [farStrong], 5, nearbyCfg)).toBeNull();
+    expect(findOpponent(me, [farStrong], 35, nearbyCfg)).toMatchObject({
       opponent: { id: 'jeddah' },
       band: 'saudi',
     });
@@ -293,9 +334,9 @@ describe('bots and fair play', () => {
 });
 
 describe('prizes', () => {
-  it('the default prize table is 10,000 down to 1,000 SAR = 55,000, in integer halalas', () => {
-    expect(prizePoolHalalas(cfg.prizeTableHalalas)).toBe(5_500_000);
-    expect(halalasToSar(5_500_000)).toBe('55,000');
+  it('CR v3 s9: the default prize table is 5,000 down to 100 SAR = 16,500, in integer halalas', () => {
+    expect(prizePoolHalalas(cfg.prizeTableHalalas)).toBe(1_650_000);
+    expect(halalasToSar(1_650_000)).toBe('16,500');
     expect(halalasToSar(12_345)).toBe('123.45');
   });
 });

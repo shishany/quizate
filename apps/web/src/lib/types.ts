@@ -5,6 +5,13 @@ import type {
   RankedResult,
   SelectableQuestion,
 } from '@quizate/game';
+import type {
+  AgeGroup,
+  ConsentStatus,
+  GuardianConsent,
+  PayoutCheck,
+  SponsorEvent,
+} from '@quizate/game';
 import type { BiText, Category } from '@/data/questions';
 
 export type Locale = 'ar' | 'en' | 'ur';
@@ -43,6 +50,11 @@ export interface SamplePlayer {
   /** Rounded sample coordinates near the city centre. */
   location: { lat: number; lng: number };
   allTimeBase: number;
+  /** CR v3: sample age group and cash eligibility (sample players are treated as ID-checked adults). */
+  ageGroup: 'youth' | 'adult';
+  cashEligible: boolean;
+  /** Declared date of birth (sample). */
+  birthDate: string;
 }
 
 export interface Player {
@@ -61,6 +73,12 @@ export interface Player {
   cityId: string;
   rating: number;
   createdAt: string;
+  /** CR v3 section 3: 13-17 is 'youth' and plays only once guardian consent is 'granted'. Missing = adult. */
+  ageGroup?: AgeGroup;
+  consentStatus?: ConsentStatus;
+  guardianConsent?: GuardianConsent | null;
+  /** Set by an admin at payout; with 18+ it makes the player cash eligible. */
+  idVerified?: boolean;
   consents: {
     type: 'terms' | 'privacy' | 'location' | 'marketing';
     version: string;
@@ -136,6 +154,22 @@ export type AdminRole =
   | 'prize_officer'
   | 'finance_approver';
 
+/** The admin's ID + IBAN-name check for one player and month (the queue itself is derived at month close). */
+export interface PayoutRecord extends PayoutCheck {
+  month: string;
+  playerId: string;
+}
+
+export interface YouthAward {
+  id: string;
+  month: string;
+  playerId: string;
+  /** What was given (for example a book voucher or a certificate). */
+  award: string;
+  at: string;
+  actor: string;
+}
+
 export interface AuditEntry {
   id: string;
   at: string;
@@ -172,6 +206,10 @@ export interface DemoState {
   following: string[];
   fraud: FraudFlag[];
   audit: AuditEntry[];
+  /** CR v3 section 9: payout reviews, keyed `<month>:<playerId>`. Every move is also in `audit`. */
+  payouts: Record<string, PayoutRecord>;
+  /** CR v3 section 9: in-kind youth awards recorded by an admin. No cash fields. */
+  youthAwards: YouthAward[];
   adminRole: AdminRole | null;
   /** The account kept on this device after signing out, so the player can sign in again. */
   savedAccount: Player | null;
@@ -200,4 +238,8 @@ export interface DemoState {
   ibanRequiredAt: 'signup' | 'ranked' | 'prize';
   /** Sponsored answers given by this player: city → counts. */
   sponsorTally: { impressions: number; answers: number; correct: number };
+  /** Price per 1,000 billable views per campaign, set in admin (halalas). Missing = configured default. */
+  campaignPrices: Record<string, number>;
+  /** CR v3 section 8: append-only view/answer events (the events table). */
+  sponsorEvents: SponsorEvent[];
 }

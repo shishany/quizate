@@ -1,4 +1,5 @@
 'use client';
+import { canPlay, isOn } from '@quizate/game';
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -29,14 +30,22 @@ export default function Home() {
   const needsIban =
     state.ibanRequiredAt === 'ranked' && !(state.player?.identityVerifiedAt && state.player.iban);
   const left = rankedLeftToday(history, now, cfg);
+  // Youth (13-17) qualify for the youth award at 30 matches; adults for prizes at 60.
+  const need =
+    state.player?.ageGroup === 'youth'
+      ? cfg.eligibility.youthMinMatches
+      : cfg.eligibility.minMatches;
   const tier = ENG.ladder.tiers[e.ladder.tierIndex];
-  const blocked = needsIban
-    ? d.home.ibanNeeded
-    : !limits.ok
-      ? limits.reason === 'DAILY_LIMIT'
-        ? d.home.dailyLimit
-        : fill(d.home.abandonBlock, { time: date(limits.resetsAt, true) })
-      : null;
+  const blocked =
+    state.player && !canPlay(state.player)
+      ? d.home.guardianPending
+      : needsIban
+        ? d.home.ibanNeeded
+        : !limits.ok
+          ? limits.reason === 'DAILY_LIMIT'
+            ? d.home.dailyLimit
+            : fill(d.home.abandonBlock, { time: date(limits.resetsAt, true) })
+          : null;
 
   return (
     <div className="space-y-4">
@@ -58,17 +67,19 @@ export default function Home() {
           </span>
         </Link>
       )}
-      <DailyClaim />
+      {isOn('daily_claim') && <DailyClaim />}
 
       <Card
         title={d.home.monthTitle}
         action={
-          <Link
-            href="/play/ladder"
-            className="rounded-full bg-gold/15 px-3 py-1 text-xs font-bold text-gold-ink hover:bg-gold/25"
-          >
-            {tier ? pick(tier.name) : ''} {e.ladder.division ? ROMAN[e.ladder.division] : ''}
-          </Link>
+          isOn('ladder') && (
+            <Link
+              href="/play/ladder"
+              className="rounded-full bg-gold/15 px-3 py-1 text-xs font-bold text-gold-ink hover:bg-gold/25"
+            >
+              {tier ? pick(tier.name) : ''} {e.ladder.division ? ROMAN[e.ladder.division] : ''}
+            </Link>
+          )
         }
       >
         <div className="grid grid-cols-2 gap-2">
@@ -95,7 +106,7 @@ export default function Home() {
             <>
               <p className="text-xs text-muted">
                 {fill(d.home.notEligible, {
-                  m: num(cfg.eligibility.minMatches),
+                  m: num(need),
                   o: num(cfg.eligibility.minOpponents),
                 })}
               </p>
@@ -103,32 +114,33 @@ export default function Home() {
                 <div className="mb-1 flex justify-between">
                   <span>{d.home.counted}</span>
                   <span className="tabular text-muted">
-                    {num(Math.min(me?.counted ?? 0, cfg.eligibility.minMatches))} /{' '}
-                    {num(cfg.eligibility.minMatches)}
+                    {num(Math.min(me?.qualifyingMatches ?? 0, need))} / {num(need)}
                   </span>
                 </div>
                 <Progress
-                  value={me?.counted ?? 0}
-                  max={cfg.eligibility.minMatches}
+                  value={me?.qualifyingMatches ?? 0}
+                  max={need}
                   tone="gold"
                   label={d.home.counted}
                 />
               </div>
-              <div>
-                <div className="mb-1 flex justify-between">
-                  <span>{d.home.opponents}</span>
-                  <span className="tabular text-muted">
-                    {num(Math.min(me?.distinctOpponents ?? 0, cfg.eligibility.minOpponents))} /{' '}
-                    {num(cfg.eligibility.minOpponents)}
-                  </span>
+              {cfg.eligibility.minOpponents > 0 && (
+                <div>
+                  <div className="mb-1 flex justify-between">
+                    <span>{d.home.opponents}</span>
+                    <span className="tabular text-muted">
+                      {num(Math.min(me?.distinctOpponents ?? 0, cfg.eligibility.minOpponents))} /{' '}
+                      {num(cfg.eligibility.minOpponents)}
+                    </span>
+                  </div>
+                  <Progress
+                    value={me?.distinctOpponents ?? 0}
+                    max={cfg.eligibility.minOpponents}
+                    tone="gold"
+                    label={d.home.opponents}
+                  />
                 </div>
-                <Progress
-                  value={me?.distinctOpponents ?? 0}
-                  max={cfg.eligibility.minOpponents}
-                  tone="gold"
-                  label={d.home.opponents}
-                />
-              </div>
+              )}
             </>
           )}
         </div>
@@ -144,21 +156,25 @@ export default function Home() {
         disabled={Boolean(blocked)}
         blocked={blocked}
       />
-      <MirrorCard />
-      <ModeCard
-        title={d.home.practiceTitle}
-        body={d.home.practiceBody}
-        href="/play/practice"
-        accent="ok"
-      />
-      <ModeCard
-        title={d.home.speedTitle}
-        body={fill(d.home.speedBody, { s: num(cfg.speedRound.seconds) })}
-        meta={state.speedBest ? fill(d.home.speedBest, { n: num(state.speedBest) }) : undefined}
-        href="/play/speed"
-        accent="gold"
-      />
-      <Missions />
+      {isOn('mirror_challenge') && <MirrorCard />}
+      {isOn('practice_bot') && (
+        <ModeCard
+          title={d.home.practiceTitle}
+          body={d.home.practiceBody}
+          href="/play/practice"
+          accent="ok"
+        />
+      )}
+      {isOn('speed_round') && (
+        <ModeCard
+          title={d.home.speedTitle}
+          body={fill(d.home.speedBody, { s: num(cfg.speedRound.seconds) })}
+          meta={state.speedBest ? fill(d.home.speedBest, { n: num(state.speedBest) }) : undefined}
+          href="/play/speed"
+          accent="gold"
+        />
+      )}
+      {isOn('missions') && <Missions />}
       <QuestionOfDay />
     </div>
   );
