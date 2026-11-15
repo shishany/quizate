@@ -4,7 +4,8 @@ export const en: Dictionary = {
   common: {
     language: 'Language',
     urduPending: 'The Urdu translation of this question is awaiting review, so it shows in Arabic.',
-    tagline: 'Challenge a nearby player in ten questions',
+    tagline: 'Knowledge rewarded, competition ignited',
+    initiative: 'An initiative of Al-Salihiya Civil Association',
     sample: 'Sample version',
     sampleTip:
       'This is a sample version. Its data lives only in your browser. Please do not enter real personal data.',

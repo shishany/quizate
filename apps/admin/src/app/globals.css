@@ -2,9 +2,15 @@
 
 @theme {
   --font-sans: 'IBM Plex Sans Arabic', 'Tajawal', system-ui, sans-serif;
-  --color-brand: #0a72ad;
-  --color-ink: #0b2238;
-  --color-page: #f5f7fb;
+  --color-primary: #0c5a62;
+  --color-action: #e7472e;
+  --color-highlight: #f5b73b;
+  --color-bg: #f2e4cc;
+  --color-card: #fff7ec;
+  --color-ink: #16171c;
+  --color-info: #bee1ce;
+  --color-brand: var(--color-primary);
+  --color-page: var(--color-bg);
 }
 
 body {
