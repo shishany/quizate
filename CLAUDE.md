@@ -1,8 +1,9 @@
-# Quizate — project brief
+# Sabbaq (سبّاق, formerly Quizate) — project brief
 
 Read this first in every session and keep it current. Update it whenever a decision changes.
 
-"Quizate" (Arabic: كويزاتي) is a working name. The product name lives in one constant, `PRODUCT` in
+The product is **Sabbaq** (سبّاق), formerly the working name "Quizate"; the repo and subdomain stay "quizate" until
+the owner confirms. The product name lives in one constant, `PRODUCT` in
 `packages/shared/src/product.ts`; never type it anywhere else in code or UI strings.
 
 ## Product
@@ -161,3 +162,14 @@ written for every admin action; strings present in ar, en and ur; no TODOs in mo
 
 - [x] Prompt 1 — monorepo scaffold and local infrastructure (branch `prompt-01-scaffold`)
 - [x] Web demo — `packages/game` and `apps/web` (branch `demo-web`)
+
+## Sabbaq change request v3 (2026-11-15, branch `sabbaq-mvp`)
+
+- Results and open questions: `SABBAQ_CHANGES.md`, `SABBAQ_QUESTIONS.md`. Where the request conflicts with the rules
+  above (13+ age, cash eligibility, monthly Elo leaderboard), the request was followed and the conflict is listed in
+  the questions; `prizes.enabled` still defaults to false.
+- New rules in `packages/game`: `features.ts` (MVP flags), `age.ts`, `categories.ts`, `board.ts` (prize-zone and youth
+  badges), `ghost.ts` (ghost opponent, invite codes), `sponsor.ts` (campaigns, events, report, funding); scoring,
+  monthly rating, prizes and collusion rules extended in place. New config keys in `docs/CONFIG.md`.
+- Palette tokens: `apps/web/src/app/globals.css` (`primary`, `action`, `highlight`, `bg`, `card`, `ink`, `info`).
+- New pages: `/stats` (public live stats); `/admin/sponsors` and `/admin/prizes` rewritten.
