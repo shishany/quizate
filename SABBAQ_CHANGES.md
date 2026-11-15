@@ -28,8 +28,22 @@ when its modules are built. Flutter, deployment, the repo rename and the subdoma
    admin campaign report by day with CSV; public `/stats` page. Partly: the Postgres events table/migration waits for
    the API; other players' views are sample daily totals.
 9. **Prizes and fair play** — done in the web sample. 16,500 table, pool = min(16,500, sponsor funding), ranks scaled
-   and rounded down to SAR 10; payout queue with ID and IBAN-name checks before approve/paid, every action in the
-   audit log; youth in-kind award (no cash fields); collusion alerts on the fair-play page. `prizes.enabled` stays
+   and rounded down to SAR 10; payout queue (reworked at month close, see owner decisions below), every action in
+   the audit log; youth in-kind award (no cash fields); collusion alerts on the fair-play page. `prizes.enabled` stays
    false (architecture rule 5), so nothing is paid; see question 1.
 
-Tests: `packages/game` 51 passing; `apps/web` 26 passing; typecheck, lint and `next build` clean.
+## Owner decisions applied (15 Nov 2026)
+
+1. **Age** — done. CLAUDE.md rule 7 and docs/BRD.md now say: open from 13, guardian consent for 13–17, cash only for
+   ID-verified 18+, in-kind youth award. `prizes.enabled` stays false until legal approval.
+2. **Payout queue** — done. Built at month close (`payoutQueue`) from the top 10 with ≥ 60 matches whose date of birth
+   says 18+, each `id_check_pending`. A passed ID + IBAN-name check sets `id_verified` → cash eligible → can be marked
+   paid. A failed check (ID mismatch, IBAN name mismatch, ID shows under 18) or an under-18 date of birth passes the
+   place to the next eligible player; both are logged (queue log and audit). Tests in `payouts.test.ts`.
+3. **Collusion** — done. BR-07 (1 match per pair per 24 h) kept; alert at ≥ 3 matches between the same pair within
+   7 days with the same winner every time. Friend matches (`friend: true`) count for no rating, qualification,
+   points or prizes. Tests in `payouts.test.ts`.
+4. **Contrast** — done. New token `action-strong` #C93A22 (about 5.1:1 with white) for sm/md primary buttons; `action`
+   #E7472E kept for lg buttons, whose labels are now 19px bold (large text, 3:1 needed).
+
+Tests: `packages/game` 53 passing; `apps/web` 26 passing; typecheck and lint clean.
