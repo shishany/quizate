@@ -37,6 +37,8 @@ export interface SettleInput {
     rating: number;
     /** CR v3 section 7: a ghost (recorded) opponent; counts for rating, not for qualification. */
     ghost?: boolean;
+    /** Challenge-a-friend match: counts for no rating, qualification, points or prizes. */
+    friend?: boolean;
   };
 }
 
@@ -108,6 +110,7 @@ export function settle(
         correct: correctCount(m.mine),
         opponentRating,
         ghost: m.opponent.ghost === true,
+        friend: m.opponent.friend === true,
         questions: m.questions.length,
         latencyTotalMs: answered.reduce((s, a) => s + (a.latencyMs ?? 0), 0),
         answered: answered.length,

@@ -115,7 +115,7 @@ function FlagCard({ f }: { f: FraudFlag }) {
 }
 
 /**
- * CR v3 section 9: same two players with >= 5 matches in 24 h and a one-sided result pattern. Built from the
+ * Owner decision 15 Nov 2026: same two players with >= 3 matches in 7 days and the same winner every time. Built from the
  * player's ranked results plus one sample pair, so the alert can be seen.
  */
 function CollusionAlerts() {
@@ -130,11 +130,12 @@ function CollusionAlerts() {
         winner: r.outcome === 'win' ? state.player!.id : r.outcome === 'loss' ? r.opponentId : null,
       }))
     : [];
-  const sample: PairMatch[] = Array.from({ length: 6 }, (_, i) => ({
-    at: new Date(now - (20 - i * 3) * 3_600_000).toISOString(),
+  // One match a day at most (BR-07): three over five days, all won by the same player.
+  const sample: PairMatch[] = [5, 3, 1].map((daysAgo) => ({
+    at: new Date(now - daysAgo * 86_400_000).toISOString(),
     playerA: 'sp-03',
     playerB: 'sp-11',
-    winner: i === 4 ? 'sp-11' : 'sp-03',
+    winner: 'sp-03',
   }));
   const alerts = collusionAlerts([...mine, ...sample], state.config);
   const name = (id: string) => {

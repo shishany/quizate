@@ -474,9 +474,9 @@ export const en: Dictionary = {
   fraud: {
     collusionTitle: 'Collusion alerts',
     collusionNone: 'No alerts.',
-    collusionMatches: 'matches within 24 h',
-    collusionWins: 'Usually won by',
-    collusionRule: 'Rule: the same two players with 5 or more matches in 24 hours and a one-sided result pattern. An analyst decides; nothing is banned automatically.',
+    collusionMatches: 'matches within 7 days',
+    collusionWins: 'Won every time by',
+    collusionRule: 'Rule: the same two players with 3 or more matches in 7 days and the same winner every time. The limit of one match per pair per 24 hours stays. An analyst decides; nothing is banned automatically.',
     title: 'Fair play',
     signal: 'Signal',
     players: 'Players',

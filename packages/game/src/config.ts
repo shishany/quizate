@@ -41,8 +41,9 @@ export interface GameConfig {
   /** Web demo mode, not in the BRD (unranked) */ speedRound: { seconds: number };
   /** Sabbaq CR v3 section 9: 5,000 down to 100 SAR (total 16,500), in halalas */ prizeTableHalalas: number[];
   /**
-   * Sabbaq CR v3 section 9: the same two players with at least `minMatches` within `windowHours` and one of them
-   * winning at least `oneSidedShare` of those matches are flagged to the fair-play page. The share is our default.
+   * Collusion alert (owner decision, 15 Nov 2026): the same two players with at least `minMatches` within
+   * `windowHours` and one of them winning `oneSidedShare` (1 = every time) of those matches are flagged to the
+   * fair-play page. The 1-match-per-pair-per-24h limit (BR-07) stays.
    */
   collusion: { minMatches: number; windowHours: number; oneSidedShare: number };
   /** Sabbaq CR v3 section 6: how many top youth players get the youth badge (in-kind award). Not given; default 3. */
@@ -90,5 +91,5 @@ export const DEFAULT_CONFIG: GameConfig = {
   speedRound: { seconds: 60 },
   youthAwardSlots: 3,
   prizeTableHalalas: [5000, 4000, 3000, 2000, 1000, 500, 400, 300, 200, 100].map((sar) => sar * 100),
-  collusion: { minMatches: 5, windowHours: 24, oneSidedShare: 0.8 },
+  collusion: { minMatches: 3, windowHours: 7 * 24, oneSidedShare: 1 },
 };

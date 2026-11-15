@@ -28,6 +28,11 @@ export interface RankedResult {
   opponentRating?: number;
   /** Ghost opponent (a replayed real match): counts for rating, not for the 60-match qualification. */
   ghost?: boolean;
+  /**
+   * Challenge-a-friend match (owner decision, 15 Nov 2026): counts for nothing monthly: not rating, not the
+   * 60-match qualification, not points or prizes.
+   */
+  friend?: boolean;
 }
 
 export interface RatingStep {
@@ -46,7 +51,7 @@ export function monthlyRating(
   let rating = cfg.rating.start;
   const history: RatingStep[] = [];
   for (const r of results
-    .filter((x) => riyadhMonthKey(x.at) === month)
+    .filter((x) => riyadhMonthKey(x.at) === month && !x.friend)
     .sort((a, b) => a.at.localeCompare(b.at))) {
     const after = updateRatings(rating, r.opponentRating ?? cfg.rating.start, r.outcome, cfg).a;
     history.push({ matchId: r.matchId, at: r.at, before: rating, after });
@@ -86,7 +91,7 @@ export function standingFor(
   cfg: GameConfig,
 ): Standing {
   const inMonth = results
-    .filter((r) => riyadhMonthKey(r.at) === month)
+    .filter((r) => riyadhMonthKey(r.at) === month && !r.friend)
     .sort((a, b) => a.at.localeCompare(b.at));
   const counted = inMonth.slice(0, cfg.monthlyCap);
 

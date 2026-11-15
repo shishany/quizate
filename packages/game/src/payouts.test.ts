@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_CONFIG as cfg } from './config.js';
 import { collusionAlerts } from './fairplay.js';
+import { monthlyRating, standingFor } from './monthly.js';
 import {
   canMarkPaid,
   monthlyPoolHalalas,
@@ -67,15 +68,27 @@ describe('prizes and fair play (CR v3 section 9)', () => {
     ]);
   });
 
-  it('flags the same pair with >= 5 matches in 24 h and a one-sided result', () => {
-    const at = (h: number) => new Date(Date.UTC(2026, 10, 10, h)).toISOString();
-    const five = [1, 2, 3, 4, 5].map((h) => ({ at: at(h), playerA: 'a', playerB: 'b', winner: 'a' }));
-    expect(collusionAlerts(five, cfg)).toEqual([
-      { pair: ['a', 'b'], matches: 5, dominant: 'a', from: at(1), to: at(5) },
+  it('flags the same pair with >= 3 matches in 7 days and the same winner every time', () => {
+    const day = (n: number) => new Date(Date.UTC(2026, 10, 10 + n, 18)).toISOString();
+    const three = [0, 2, 5].map((n) => ({ at: day(n), playerA: 'a', playerB: 'b', winner: 'b' }));
+    expect(collusionAlerts(three, cfg)).toEqual([
+      { pair: ['a', 'b'], matches: 3, dominant: 'b', from: day(0), to: day(5) },
     ]);
-    const mixed = five.map((m, i) => ({ ...m, winner: i < 3 ? 'a' : 'b' }));
-    expect(collusionAlerts(mixed, cfg)).toEqual([]);
-    const spread = five.map((m, i) => ({ ...m, at: new Date(Date.UTC(2026, 10, 10 + i)).toISOString() }));
+    expect(collusionAlerts(three.slice(0, 2), cfg)).toEqual([]);
+    expect(collusionAlerts(three.map((m, i) => ({ ...m, winner: i === 1 ? 'a' : 'b' })), cfg)).toEqual([]);
+    expect(collusionAlerts(three.map((m, i) => ({ ...m, winner: i === 1 ? null : 'b' })), cfg)).toEqual([]);
+    const spread = [0, 4, 8].map((n) => ({ at: day(n), playerA: 'a', playerB: 'b', winner: 'b' }));
     expect(collusionAlerts(spread, cfg)).toEqual([]);
+  });
+
+  it('challenge-a-friend matches count for no rating, qualification, points or prizes', () => {
+    const at = (i: number) => new Date(Date.UTC(2026, 10, 1, 9, i)).toISOString();
+    const base = { opponentId: 'o', outcome: 'win' as const, score: 90, correct: 9, questions: 10, latencyTotalMs: 20_000, answered: 10 };
+    const sixty = Array.from({ length: 60 }, (_, i) => ({ ...base, matchId: `m${i}`, at: at(i) }));
+    const friends = sixty.map((r) => ({ ...r, friend: true }));
+    expect(monthlyRating(friends, '2026-11', cfg).rating).toBe(1000);
+    const s = standingFor('p', friends, '2026-11', cfg);
+    expect(s).toMatchObject({ points: 0, qualifyingMatches: 0, eligible: false, rating: 1000 });
+    expect(standingFor('p', [...sixty, ...friends], '2026-11', cfg).qualifyingMatches).toBe(60);
   });
 });

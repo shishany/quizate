@@ -27,8 +27,8 @@ export interface CollusionAlert {
 }
 
 /**
- * Sabbaq CR v3 section 9: the same two players with >= N matches inside a sliding window and a one-sided result
- * pattern (one player wins >= the configured share). One alert per pair, for the busiest window.
+ * The same two players with >= N matches inside a sliding window (default 3 in 7 days) and a one-sided result
+ * pattern (default: the same winner every time; a draw breaks it). One alert per pair, for the busiest window.
  */
 export function collusionAlerts(matches: readonly PairMatch[], cfg: GameConfig): CollusionAlert[] {
   const { minMatches, windowHours, oneSidedShare } = cfg.collusion;

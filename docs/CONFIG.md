@@ -86,6 +86,6 @@ These defaults replace the BRD values in the rows above where they differ. All l
 | `ghostAfterSeconds` | 20 | Section 7: then a ghost opponent ("منافس مسجّل") |
 | `youthAwardSlots` | 3 | Section 6/9: top youth players marked for the in-kind award (count not given; our default) |
 | `prizeTableHalalas` | 5,000 … 100 SAR (16,500) | Section 9; pool = min(16,500, sponsor funding), ranks scaled, rounded down to SAR 10 |
-| `collusion` | 5 matches, 24 h, 80% | Section 9: one-sided share of 80% is our default |
+| `collusion` | 3 matches, 7 days, same winner every time | Owner decision 15 Nov 2026; BR-07 (1 match per pair per 24 h) stays. Friend matches count for nothing monthly |
 | Minimum age | 13 (`AGE` in `age.ts`) | Section 3 |
 | Feature flags | see `features.ts` | Section 2 |
