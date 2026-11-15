@@ -1,6 +1,6 @@
 # Quiz & Rewards Platform — Business Requirements Document
 
-Version 1.1 · 30 Oct 2026 · AlgoNova Technologies (v1.1: 18+ for all users via Nafath, verified IBAN, Urdu, engagement layer — see docs/ENGAGEMENT.md)
+Version 1.1 · 30 Oct 2026 · AlgoNova Technologies (v1.1; age rule changed 15 Nov 2026 to 13+ with guardian consent for 13-17, see section 1; v1.1 had: 18+ for all users via Nafath, verified IBAN, Urdu, engagement layer — see docs/ENGAGEMENT.md)
 
 This BRD turns the owner's concept — free 1v1 location-matched trivia, ten questions per match, a monthly top-10 leaderboard paying SAR 55,000 — into buildable, testable requirements. Cash prizes are designed in but switched off until legal clearance (see docs/REGULATORY.md).
 
@@ -21,7 +21,8 @@ The MVP is a secure, Arabic-first 1v1 trivia game with sponsors and a monthly le
 Decisions this BRD takes as given (owner to confirm in section 8):
 
 - Participation is free. No purchase, paid attempt or paid advantage affects prize eligibility.
-- The whole app is 18+. Sign-up is through Nafath (citizens and Iqama holders), which supplies a verified date of birth. A Saudi IBAN owned by the same ID number is verified at sign-up by default (configurable to before ranked play or before prizes). Prize payouts go only by bank transfer to that IBAN.
+- **Age (owner decision, 15 Nov 2026):** the app is open from 13. Players aged 13-17 need a guardian's consent (OTP to the guardian's mobile, consent record kept) before they can play. Cash prizes only for ID-verified players aged 18+; the top youth players get an in-kind youth award, never cash. Cash prizes stay disabled (`prizes.enabled=false`) until legal approval.
+- *Superseded by the age rule above:* the whole app is 18+. Sign-up is through Nafath (citizens and Iqama holders), which supplies a verified date of birth. A Saudi IBAN owned by the same ID number is verified at sign-up by default (configurable to before ranked play or before prizes). Prize payouts go only by bank transfer to that IBAN.
 - The legal organizer of any prize competition is a Saudi CR holder appointed by the owner, not AlgoNova.
 - All scoring, timing and ranking are computed on the server. The client app is never trusted for results.
 - Prize rules, amounts and schedule are configuration, not code. SAR 55,000 is a default value, not hard-coded.
@@ -42,7 +43,7 @@ Decisions this BRD takes as given (owner to confirm in section 8):
 
 End-to-end journey (happy path):
 
-1. Player installs the app, picks a language (Arabic default, English, Urdu) and signs up with Nafath; under-18s are refused. They add a Saudi mobile number (OTP), a display name, a Saudi IBAN (verified against their ID number) and consents.
+1. Player installs the app, picks a language (Arabic default, English, Urdu) and signs up with a mobile number (Nafath optional); under-13s are refused and 13-17s wait for guardian consent. They add a Saudi mobile number (OTP), a display name, a Saudi IBAN (verified against their ID number) and consents.
 2. Player optionally grants approximate location while matching; declining keeps nationwide matching.
 3. Player taps Play; the system places a queue ticket and finds an eligible opponent (section 4).
 4. Both players confirm; the server assigns one fixed set of 10 questions, which may include up to 2 labelled sponsor questions.
@@ -72,7 +73,7 @@ The owner's "points out of 100" is kept, but ranking is on capped, quality-weigh
 | BR-12 | Repeat abandoners (3 in 24 h) are blocked from ranked play for 24 h.                                                                                                             | 3 / 24 h           |
 | BR-13 | Question integrity: each question appears at most once per player per 90 days; leaked or disputed questions are voided and both players re-scored.                               | 90 days            |
 | BR-14 | Sponsor questions are labelled "Sponsored", count the same as any other question, and never exceed 2 of 10.                                                                      | Max 2              |
-| BR-15 | Prize eligibility: Saudi resident, 18+, verified Absher/Nafath-level identity or equivalent KYC, Saudi IBAN in own name, not an employee or relative of the organizer.           | —                  |
+| BR-15 | Cash prize eligibility (13+ app, cash 18+ only; youth get an in-kind award): Saudi resident, 18+, ID verified by an admin at payout, verified Absher/Nafath-level identity or equivalent KYC, Saudi IBAN in own name, not an employee or relative of the organizer.           | —                  |
 | BR-16 | Month close: leaderboard freezes at 23:59:59 Riyadh time on the last day; provisional results after fraud review within 3 days; final after a 48-hour appeal window.             | 3 days + 48 h      |
 | BR-17 | Disqualified players are removed and the next eligible player moves up; the reason is recorded in the audit log.                                                                 | —                  |
 | BR-18 | Admin overrides of any score or rank require a reason, a second approver and are written to an immutable ledger.                                                                 | 4-eyes             |
@@ -183,7 +184,7 @@ The workflow must also support the narrower model the regulator may require, suc
 | NFR-09 | Privacy       | Data minimisation, retention schedule, consent records, breach response within 72 h to SDAIA                                                       |
 | NFR-10 | Usability     | Arabic (default), English and Urdu; RTL for Arabic and Urdu, Nastaliq font for Urdu; accessible contrast and font scaling; works on 3G with resume |
 | NFR-11 | Observability | Central logs, metrics and alerts; cloud spend alerts; fraud dashboard                                                                              |
-| NFR-12 | Age rating    | Store and GAMR age rating set before launch; 18+ gate for prize features                                                                           |
+| NFR-12 | Age rating    | Store and GAMR age rating set before launch; 13+ app with guardian consent for 13-17; 18+ gate for cash prize features                                                                           |
 
 Pilot KPIs that decide whether to scale (Gate G2/G3):
 
