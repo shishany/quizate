@@ -62,4 +62,4 @@ when its modules are built. Flutter, deployment, the repo rename and the subdoma
    campaign in admin (audited), default SAR 40. Prize-pool funding = billable views × campaign price.
 5. **Legal review of youth data and consent wording** — open, owner: the association's legal adviser.
 
-Tests: `packages/game` 56 passing; `apps/web` 26 passing; typecheck and lint clean.
+Tests: `packages/game` 55 passing; `apps/web` 26 passing; typecheck and lint clean.
