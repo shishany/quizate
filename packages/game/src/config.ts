@@ -39,7 +39,12 @@ export interface GameConfig {
   /** Build prompt 5 */ acceptSeconds: number;
   /** BRD section 3, fair-play signals */ fairPlay: { minHumanMs: number; maxFastAnswers: number };
   /** Web demo mode, not in the BRD (unranked) */ speedRound: { seconds: number };
-  /** BRD section 1; build prompt 10: 10,000 down to 1,000 SAR, in halalas */ prizeTableHalalas: number[];
+  /** Sabbaq CR v3 section 9: 5,000 down to 100 SAR (total 16,500), in halalas */ prizeTableHalalas: number[];
+  /**
+   * Sabbaq CR v3 section 9: the same two players with at least `minMatches` within `windowHours` and one of them
+   * winning at least `oneSidedShare` of those matches are flagged to the fair-play page. The share is our default.
+   */
+  collusion: { minMatches: number; windowHours: number; oneSidedShare: number };
   /** Sabbaq CR v3 section 6: how many top youth players get the youth badge (in-kind award). Not given; default 3. */
   youthAwardSlots: number;
 }
@@ -84,7 +89,6 @@ export const DEFAULT_CONFIG: GameConfig = {
   fairPlay: { minHumanMs: 800, maxFastAnswers: 2 },
   speedRound: { seconds: 60 },
   youthAwardSlots: 3,
-  prizeTableHalalas: [10_000, 9_000, 8_000, 7_000, 6_000, 5_000, 4_000, 3_000, 2_000, 1_000].map(
-    (sar) => sar * 100,
-  ),
+  prizeTableHalalas: [5000, 4000, 3000, 2000, 1000, 500, 400, 300, 200, 100].map((sar) => sar * 100),
+  collusion: { minMatches: 5, windowHours: 24, oneSidedShare: 0.8 },
 };

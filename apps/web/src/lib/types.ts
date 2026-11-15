@@ -5,7 +5,14 @@ import type {
   RankedResult,
   SelectableQuestion,
 } from '@quizate/game';
-import type { AgeGroup, ConsentStatus, GuardianConsent, SponsorEvent } from '@quizate/game';
+import type {
+  AgeGroup,
+  ConsentStatus,
+  GuardianConsent,
+  PayoutReview,
+  PayoutStatus,
+  SponsorEvent,
+} from '@quizate/game';
 import type { BiText, Category } from '@/data/questions';
 
 export type Locale = 'ar' | 'en' | 'ur';
@@ -146,6 +153,23 @@ export type AdminRole =
   | 'prize_officer'
   | 'finance_approver';
 
+export interface PayoutRecord {
+  month: string;
+  playerId: string;
+  status: PayoutStatus;
+  review: PayoutReview;
+}
+
+export interface YouthAward {
+  id: string;
+  month: string;
+  playerId: string;
+  /** What was given (for example a book voucher or a certificate). */
+  award: string;
+  at: string;
+  actor: string;
+}
+
 export interface AuditEntry {
   id: string;
   at: string;
@@ -182,6 +206,10 @@ export interface DemoState {
   following: string[];
   fraud: FraudFlag[];
   audit: AuditEntry[];
+  /** CR v3 section 9: payout reviews, keyed `<month>:<playerId>`. Every move is also in `audit`. */
+  payouts: Record<string, PayoutRecord>;
+  /** CR v3 section 9: in-kind youth awards recorded by an admin. No cash fields. */
+  youthAwards: YouthAward[];
   adminRole: AdminRole | null;
   /** The account kept on this device after signing out, so the player can sign in again. */
   savedAccount: Player | null;

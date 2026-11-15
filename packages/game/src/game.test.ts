@@ -319,9 +319,9 @@ describe('bots and fair play', () => {
 });
 
 describe('prizes', () => {
-  it('the default prize table is 10,000 down to 1,000 SAR = 55,000, in integer halalas', () => {
-    expect(prizePoolHalalas(cfg.prizeTableHalalas)).toBe(5_500_000);
-    expect(halalasToSar(5_500_000)).toBe('55,000');
+  it('CR v3 s9: the default prize table is 5,000 down to 100 SAR = 16,500, in integer halalas', () => {
+    expect(prizePoolHalalas(cfg.prizeTableHalalas)).toBe(1_650_000);
+    expect(halalasToSar(1_650_000)).toBe('16,500');
     expect(halalasToSar(12_345)).toBe('123.45');
   });
 });

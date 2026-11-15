@@ -9,7 +9,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import type { SponsorEvent } from '@quizate/game';
+import { canMovePayout, type PayoutReview, type PayoutStatus, type SponsorEvent } from '@quizate/game';
 import {
   claimState,
   riyadhDayKey,
@@ -32,6 +32,8 @@ import type {
   Player,
   Question,
   QuestionAction,
+  PayoutRecord,
+  YouthAward,
 } from './types';
 
 export type Action =
@@ -76,7 +78,10 @@ export type Action =
       >;
     }
   | { type: 'config'; key: ConfigKey; value: number; reason: string }
-  | { type: 'fraud'; id: string; status: FraudStatus; reason: string };
+  | { type: 'fraud'; id: string; status: FraudStatus; reason: string }
+  | { type: 'payoutReview'; month: string; playerId: string; field: keyof PayoutReview; value: boolean }
+  | { type: 'payoutMove'; month: string; playerId: string; to: PayoutStatus; reason: string }
+  | { type: 'youthAward'; month: string; playerId: string; award: string };
 
 /** Editable configuration keys (FR-27), each a number at a path in GameConfig. */
 export type ConfigKey =
@@ -122,6 +127,9 @@ export function countedThisMonth(state: DemoState, at: string): number {
   const month = riyadhMonthKey(at);
   return state.myResults.filter((r) => riyadhMonthKey(r.at) === month).length;
 }
+
+/** CR v3 section 9: who may review payouts and record youth awards. */
+const PRIZE_ROLES: AdminRole[] = ['super_admin', 'prize_officer', 'finance_approver'];
 
 let auditSeq = 0;
 function audit(
@@ -508,6 +516,52 @@ export function reducer(state: DemoState, action: Action): DemoState {
           before: String(from),
           after: String(action.value),
         }),
+      };
+    }
+    case 'payoutReview':
+    case 'payoutMove': {
+      if (!state.adminRole || !PRIZE_ROLES.includes(state.adminRole)) return state;
+      const key = `${action.month}:${action.playerId}`;
+      const rec: PayoutRecord = state.payouts[key] ?? {
+        month: action.month,
+        playerId: action.playerId,
+        status: 'pending_review',
+        review: { idChecked: false, ibanNameMatches: false },
+      };
+      if (action.type === 'payoutReview') {
+        if (rec.status !== 'pending_review') return state;
+        const next = { ...rec, review: { ...rec.review, [action.field]: action.value } };
+        return {
+          ...state,
+          payouts: { ...state.payouts, [key]: next },
+          audit: audit(state, `payout.review.${action.field}`, key, null, {
+            before: String(rec.review[action.field]),
+            after: String(action.value),
+          }),
+        };
+      }
+      if (!action.reason.trim() || !canMovePayout(rec.status, action.to, rec.review)) return state;
+      return {
+        ...state,
+        payouts: { ...state.payouts, [key]: { ...rec, status: action.to } },
+        audit: audit(state, `payout.${action.to}`, key, action.reason, { before: rec.status, after: action.to }),
+      };
+    }
+    case 'youthAward': {
+      if (!state.adminRole || !PRIZE_ROLES.includes(state.adminRole) || !action.award.trim()) return state;
+      const at = new Date().toISOString();
+      const entry: YouthAward = {
+        id: `ya-${Date.now()}`,
+        month: action.month,
+        playerId: action.playerId,
+        award: action.award.trim(),
+        at,
+        actor: ADMIN_USERS[state.adminRole].id,
+      };
+      return {
+        ...state,
+        youthAwards: [entry, ...state.youthAwards],
+        audit: audit(state, 'youth_award.record', `${action.month}:${action.playerId}`, entry.award),
       };
     }
     case 'fraud': {

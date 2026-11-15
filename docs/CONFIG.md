@@ -70,3 +70,22 @@ None yet. Each prompt that adds a key lists it here with its BRD source, default
 | Flag             | Default                      | Who may change it                                                                                       |
 | ---------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------- |
 | `prizes.enabled` | `false` in every environment | super_admin with a second super_admin's approval, after Gate G1 (Prompt 10). Never changed by an agent. |
+
+## Sabbaq change request v3 (2026-11-15)
+
+These defaults replace the BRD values in the rows above where they differ. All live in `packages/game/src/config.ts`
+(`DEFAULT_CONFIG`) and `packages/game/src/features.ts` (`FEATURE_FLAGS`).
+
+| Key | Default | Rule |
+| --- | --- | --- |
+| `questionSeconds` | 10 | Section 5: 10 s per question, server-timed |
+| `speedPoints` | base 10, perSecond 0.5, min 5 | Section 5: correct = clamp(round(10 - 0.5 x s), 5, 10); wrong/timeout 0 |
+| `rating` | start 1000, K 32 | Section 6: monthly Elo, everyone restarts at 1,000 each Riyadh month |
+| `eligibility` | 60 matches, 0 opponents | Section 6: >= 60 completed non-ghost matches; distinct-opponent rule removed |
+| `matchmaking` | ±100, +100 every 5 s | Section 7: rating only (`nearby_matching` off) |
+| `ghostAfterSeconds` | 20 | Section 7: then a ghost opponent ("منافس مسجّل") |
+| `youthAwardSlots` | 3 | Section 6/9: top youth players marked for the in-kind award (count not given; our default) |
+| `prizeTableHalalas` | 5,000 … 100 SAR (16,500) | Section 9; pool = min(16,500, sponsor funding), ranks scaled, rounded down to SAR 10 |
+| `collusion` | 5 matches, 24 h, 80% | Section 9: one-sided share of 80% is our default |
+| Minimum age | 13 (`AGE` in `age.ts`) | Section 3 |
+| Feature flags | see `features.ts` | Section 2 |

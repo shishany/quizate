@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { collusionAlerts, type PairMatch } from '@quizate/game';
 import { Badge, Button, Card, Notice } from '@/components/ui';
 import { useT } from '@/i18n';
 import { adminName, samplePlayerById } from '@/lib/sample';
@@ -23,6 +24,7 @@ export default function FraudPage() {
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">{d.fraud.title}</h1>
       <Notice>{d.fraud.noAutoBan}</Notice>
+      <CollusionAlerts />
       <div className="grid gap-3">
         {state.fraud.map((f) => (
           <FlagCard key={f.id} f={f} />
@@ -108,6 +110,55 @@ function FlagCard({ f }: { f: FraudFlag }) {
           </div>
         </div>
       )}
+    </Card>
+  );
+}
+
+/**
+ * CR v3 section 9: same two players with >= 5 matches in 24 h and a one-sided result pattern. Built from the
+ * player's ranked results plus one sample pair, so the alert can be seen.
+ */
+function CollusionAlerts() {
+  const { state } = useStore();
+  const { d, num, pick, date } = useT();
+  const now = Date.now();
+  const mine: PairMatch[] = state.player
+    ? state.myResults.map((r) => ({
+        at: r.at,
+        playerA: state.player!.id,
+        playerB: r.opponentId,
+        winner: r.outcome === 'win' ? state.player!.id : r.outcome === 'loss' ? r.opponentId : null,
+      }))
+    : [];
+  const sample: PairMatch[] = Array.from({ length: 6 }, (_, i) => ({
+    at: new Date(now - (20 - i * 3) * 3_600_000).toISOString(),
+    playerA: 'sp-03',
+    playerB: 'sp-11',
+    winner: i === 4 ? 'sp-11' : 'sp-03',
+  }));
+  const alerts = collusionAlerts([...mine, ...sample], state.config);
+  const name = (id: string) => {
+    const p = samplePlayerById(id);
+    return p ? pick(p.name) : id === state.player?.id ? state.player.name : id;
+  };
+  return (
+    <Card title={d.fraud.collusionTitle}>
+      {alerts.length === 0 ? (
+        <p className="text-sm text-muted">{d.fraud.collusionNone}</p>
+      ) : (
+        <ul className="space-y-2 text-sm">
+          {alerts.map((a) => (
+            <li key={a.pair.join('|')} className="rounded-lg bg-bad-bg px-3 py-2">
+              <span className="font-semibold">
+                {name(a.pair[0])} · {name(a.pair[1])}
+              </span>{' '}
+              · {num(a.matches)} {d.fraud.collusionMatches} · {d.fraud.collusionWins}: {name(a.dominant)} ·{' '}
+              {date(a.from, true)} – {date(a.to, true)}
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="mt-2 text-xs text-muted">{d.fraud.collusionRule}</p>
     </Card>
   );
 }

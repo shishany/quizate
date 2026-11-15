@@ -366,6 +366,8 @@ export function initialState(now = new Date()): DemoState {
     following: [],
     fraud: sampleFraud(now),
     audit: [],
+    payouts: {},
+    youthAwards: [],
     adminRole: null,
     sponsorTally: { impressions: 0, answers: 0, correct: 0 },
     sponsorEvents: [],
