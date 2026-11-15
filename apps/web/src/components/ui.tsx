@@ -8,7 +8,7 @@ import { useStore } from '@/lib/store';
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
 const VARIANTS: Record<Variant, string> = {
-  primary: 'bg-brand-gradient text-white shadow-sm hover:opacity-95 disabled:opacity-50',
+  primary: 'bg-action text-white shadow-sm hover:opacity-95 disabled:opacity-50',
   secondary: 'border border-line bg-white text-ink hover:bg-slate-50 disabled:opacity-50',
   ghost: 'text-brand hover:bg-brand/5 disabled:opacity-50',
   danger: 'border border-bad/30 bg-white text-bad hover:bg-bad-bg disabled:opacity-50',
