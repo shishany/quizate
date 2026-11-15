@@ -69,6 +69,19 @@ const ar = {
     youthAward: 'وأفضل 3 ناشئين (13–17) ينالون جائزة عينية.',
     locked: 'الجوائز النقدية مفعّلة بعد الموافقة النظامية فقط.',
   },
+  impact: {
+    title: 'أثر المبادرة',
+    intro: 'مبادرة من الجمعية الأهلية الصالحية: كل سؤال يُجاب عنه معرفةٌ تنتشر.',
+    questions: 'أسئلة أُجيب عنها اليوم',
+    players: 'لاعبون وصلنا إليهم اليوم',
+    cities: 'مدن',
+    youth: 'ناشئون (13–17)',
+    categories: 'المعرفة حسب الفئة',
+    goals: 'أهداف الجمعية',
+    goalKnowledge: ['نشر الثقافة والمعرفة', '{q} سؤال اليوم في {c} فئات معرفية.'],
+    goalReach: ['الوصول لأكبر عدد', '{p} لاعب من {n} مدن، منهم {y} من الناشئين.'],
+    goalSupport: ['استقطاب الداعمين', '{s} رعاة يموّلون {f} ر.س هذا الشهر، تعود جوائز للاعبين.'],
+  },
   features: {
     classic_1v1: ['تحدٍّ 1 ضد 1', 'عشرة أسئلة، عشر ثوانٍ لكل سؤال، ونقاط حسب السرعة.'],
     categories: ['الفئات', 'منوّع، تاريخ، جغرافيا، أدب، علوم، رياضة.'],
@@ -175,6 +188,29 @@ const en: ShowcaseDict = {
     place: 'Place {n}',
     youthAward: 'And the top 3 youth (13–17) win an in-kind award.',
     locked: 'Cash prizes switch on only after legal approval.',
+  },
+  impact: {
+    title: 'Impact of the initiative',
+    intro:
+      'An initiative of Al-Salihiya Civil Association: every question answered spreads knowledge.',
+    questions: 'Questions answered today',
+    players: 'Players reached today',
+    cities: 'Cities',
+    youth: 'Youth (13–17)',
+    categories: 'Knowledge by category',
+    goals: "The association's goals",
+    goalKnowledge: [
+      'Spreading culture and knowledge',
+      '{q} questions today across {c} knowledge categories.',
+    ],
+    goalReach: [
+      'Reaching as many people as possible',
+      '{p} players from {n} cities, {y} of them youth.',
+    ],
+    goalSupport: [
+      'Attracting supporters',
+      '{s} sponsors fund SAR {f} this month, returned to players as prizes.',
+    ],
   },
   features: {
     classic_1v1: ['1v1 challenge', 'Ten questions, ten seconds each, points for speed.'],
