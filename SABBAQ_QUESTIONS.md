@@ -16,14 +16,16 @@
 - **Colour contrast:** `action` #E7472E only for large bold labels (≥ 18.66px bold); new `action-strong` #C93A22 for
   buttons with smaller white text. Applied.
 - **Friend matches:** count for no rating, qualification or prizes. Applied.
+- **Youth award:** top 3 youth (13–17) per month, qualifying at 30 completed matches (adults 60); in-kind values
+  entered by an admin per month, no cash fields. Applied.
+- **Ghost matches:** no rating, qualification or prizes while ghost answers are generated; flag
+  `ghost_counts_for_rating` (default false) for real replays. Applied.
+- **Content:** the 30 new sample questions are `needs_review` until approved; Urdu behind `locale_ur` (default
+  false); MVP languages Arabic and English. Applied.
+- **Sponsor price:** billable view = shown ≥ 3 s; answers and % correct are quality metrics only; price per 1,000 set
+  per campaign in admin, default SAR 40; funding = billable views × campaign price. Applied.
 
 ## Still open
 
-1. **Youth award.** How many youth players get the badge and award (default 3)? Do they also need 60 matches?
-2. **Ghost matches and monthly points.** Ghost matches count for rating, not qualification. Should they also earn
-   monthly points (they do now)? And are monthly points still needed now that the board ranks by rating?
-3. **Content.** The new Literature, Sport and History sample questions and the Urdu strings need a reviewer.
-4. **Sponsor price.** The sample uses SAR 25 per 1,000 views and a 300,000-view quota per campaign. Real prices and
-   quotas are per contract; confirm whether funding counts views or only answered views.
-5. **Youth play, legal.** Minors' data under PDPL and the guardian consent wording still need legal review before
-   launch.
+1. **Legal review of youth data and consent wording.** Minors' data under PDPL and the guardian consent wording need
+   legal review before launch. Owner: the association's legal adviser.

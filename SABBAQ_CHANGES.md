@@ -13,15 +13,16 @@ when its modules are built. Flutter, deployment, the repo rename and the subdoma
    `consent_status='pending'`, guardian mobile + OTP, consent record (time, SHA-256 of the guardian's number); play is
    blocked until `granted`; `cash_eligible = age >= 18 AND id_verified`. Nafath stays optional. Partly: the real OTP
    to the guardian and a later "guardian confirms" link need the server.
-4. **Categories** — done. Six categories (`categories.ts`), picked before "ابدأ التحدي"; Mixed = all. Added 13
-   Literature, 9 Sport and 7 History sample questions so each category fills a match (need content review).
+4. **Categories** — done. Six categories (`categories.ts`), picked before "ابدأ التحدي"; Mixed = all. Added 30
+   sample questions (13 Literature, 10 Sport, 7 History; the earlier count of 29 was wrong). They now start as
+   `needs_review` (see below).
 5. **Match rules** — done. 10 questions, 10 s, speed points clamp(round(10 − 0.5·s), 5, 10), max 100; tie → lower total
    answer time.
 6. **Monthly rating and leaderboard** — done. Monthly Elo from 1,000, K=32, history per match (`monthlyRating`);
    qualification ≥ 60 completed non-ghost matches; the 20-match / 10-opponent rule removed; everyone ranks together
    by monthly rating; prize-zone badge (top 10 qualified cash-eligible) and youth badge (top 3 qualified youth).
 7. **Matching** — partly done. Rating-only search ±100 widening by 100 every 5 s; ghost opponent after 20 s labelled
-   "منافس مسجّل" (counts for rating, not qualification); invite links. Partly: the sample has no stored matches, so the
+   "منافس مسجّل" (counts for nothing while its answers are generated, see below); invite links. Partly: the sample has no stored matches, so the
    ghost's answers are generated, and a private match from an invite link needs the match server.
 8. **Sponsored questions** — done in the web sample. `Sponsor`, `Campaign` (quota, price per 1,000 views), questions'
    `campaignId`; sponsor bar "برعاية {sponsor}" under the question; view/answer events appended once per match;
@@ -46,4 +47,19 @@ when its modules are built. Flutter, deployment, the repo rename and the subdoma
 4. **Contrast** — done. New token `action-strong` #C93A22 (about 5.1:1 with white) for sm/md primary buttons; `action`
    #E7472E kept for lg buttons, whose labels are now 19px bold (large text, 3:1 needed).
 
-Tests: `packages/game` 53 passing; `apps/web` 26 passing; typecheck and lint clean.
+## Owner answers to the open items (15 Nov 2026)
+
+1. **Youth award** — done. Top 3 youth (13–17) per month with ≥ 30 completed matches (`eligibility.youthMinMatches`);
+   adults stay at 60. The award is in kind, entered by an admin per month; no cash fields, no amounts in config.
+2. **Ghost matches** — done. No rating change, no qualification count, no points or prizes while ghost answers are
+   generated. Flag `ghost_counts_for_rating` (default false) with a TODO for when real replays exist.
+3. **Content** — done. The 30 new sample questions start as `needs_review` and enter matches only once approved in
+   the question-review screen; categories without 10 published questions are disabled in the picker until then
+   (Literature, Sport and History in the fresh sample). Urdu is behind flag `locale_ur` (default false); the MVP
+   languages are Arabic (default) and English.
+4. **Sponsored questions** — done. A billable view = shown on screen ≥ 3 s (time to answer, or the full 10 s on a
+   timeout). Answers and % correct are reported as quality metrics only. Price per 1,000 billable views is set per
+   campaign in admin (audited), default SAR 40. Prize-pool funding = billable views × campaign price.
+5. **Legal review of youth data and consent wording** — open, owner: the association's legal adviser.
+
+Tests: `packages/game` 56 passing; `apps/web` 26 passing; typecheck and lint clean.
