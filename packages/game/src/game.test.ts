@@ -106,11 +106,13 @@ describe('monthly ranking', () => {
     expect(standingFor('p', withGhost, '2026-10', cfg).eligible).toBe(false);
   });
 
-  it('CR v3 s6: monthly rating starts at 1,000 and replays the month; ghost matches move it', () => {
+  it('CR v3 s6: monthly rating starts at 1,000 and replays the month; ghost matches count only behind the flag', () => {
     expect(monthlyRating([], '2026-10', cfg)).toEqual({ rating: 1000, history: [] });
-    const r = monthlyRating([{ ...result(1), ghost: true }], '2026-10', cfg);
-    expect(r.rating).toBe(result(1).outcome === 'win' ? 1016 : result(1).outcome === 'loss' ? 984 : 1000);
-    expect(r.history).toHaveLength(1);
+    expect(monthlyRating([result(1)], '2026-10', cfg).rating).toBe(1016);
+    const ghost = [{ ...result(1), ghost: true }];
+    expect(monthlyRating(ghost, '2026-10', cfg)).toEqual({ rating: 1000, history: [] });
+    expect(monthlyRating(ghost, '2026-10', cfg, true).rating).toBe(1016);
+    expect(standingFor('p', ghost, '2026-10', cfg)).toMatchObject({ points: 0, counted: 0, qualifyingMatches: 0 });
     expect(monthlyRating([result(1)], '2026-11', cfg).rating).toBe(1000);
   });
 

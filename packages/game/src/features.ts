@@ -23,6 +23,12 @@ export const FEATURE_FLAGS = {
   iban_api: false,
   nafath_required: false,
   membership: false,
+  /**
+   * Owner decision 15 Nov 2026: while ghost answers are generated (no stored real matches yet), ghost matches change
+   * no rating and count for no qualification or prizes.
+   * TODO(owner): switch on once the match server replays real recorded matches.
+   */
+  ghost_counts_for_rating: false,
 } as const satisfies Record<string, boolean>;
 
 export type FeatureFlag = keyof typeof FEATURE_FLAGS;

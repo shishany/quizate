@@ -1,6 +1,7 @@
 /**
  * Ghost opponent and friend challenges (Sabbaq change request v3, section 7).
- * A ghost opponent replays a stored real match of similar rating; its matches count for rating but not for the
+ * A ghost opponent replays a stored real match of similar rating. While ghost answers are generated its matches count
+ * for no rating, qualification or prizes (flag `ghost_counts_for_rating`, off); never for the
  * 60-match qualification (`RankedResult.ghost`). The UI labels it "منافس مسجّل" (recorded opponent).
  */
 import type { GameConfig } from './config.js';

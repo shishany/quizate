@@ -1,5 +1,6 @@
 import type { GameConfig } from './config.js';
 import type { Outcome } from './scoring.js';
+import { isOn } from './features.js';
 import { updateRatings } from './rating.js';
 import { riyadhMonthKey } from './time.js';
 
@@ -26,7 +27,10 @@ export interface RankedResult {
   answered: number;
   /** Opponent's monthly rating before the match (Elo input); start rating when unknown. */
   opponentRating?: number;
-  /** Ghost opponent (a replayed real match): counts for rating, not for the 60-match qualification. */
+  /**
+   * Ghost (recorded) opponent: no qualification, points or prizes; rating only when `ghost_counts_for_rating` is on
+   * (off while ghost answers are generated).
+   */
   ghost?: boolean;
   /**
    * Challenge-a-friend match (owner decision, 15 Nov 2026): counts for nothing monthly: not rating, not the
@@ -47,11 +51,12 @@ export function monthlyRating(
   results: readonly RankedResult[],
   month: string,
   cfg: GameConfig,
+  ghostCountsForRating = isOn('ghost_counts_for_rating'),
 ): { rating: number; history: RatingStep[] } {
   let rating = cfg.rating.start;
   const history: RatingStep[] = [];
   for (const r of results
-    .filter((x) => riyadhMonthKey(x.at) === month && !x.friend)
+    .filter((x) => riyadhMonthKey(x.at) === month && !x.friend && (!x.ghost || ghostCountsForRating))
     .sort((a, b) => a.at.localeCompare(b.at))) {
     const after = updateRatings(rating, r.opponentRating ?? cfg.rating.start, r.outcome, cfg).a;
     history.push({ matchId: r.matchId, at: r.at, before: rating, after });
@@ -93,7 +98,8 @@ export function standingFor(
   const inMonth = results
     .filter((r) => riyadhMonthKey(r.at) === month && !r.friend)
     .sort((a, b) => a.at.localeCompare(b.at));
-  const counted = inMonth.slice(0, cfg.monthlyCap);
+  // Ghost matches earn no points (owner decision, 15 Nov 2026); they may still reach the rating replay below.
+  const counted = inMonth.filter((r) => !r.ghost).slice(0, cfg.monthlyCap);
 
   let points = 0;
   let reachedAt: string | null = null;

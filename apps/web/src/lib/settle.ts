@@ -4,6 +4,7 @@ import {
   matchScore,
   monthlyPoints,
   outcomeFor,
+  isOn,
   matchSponsorEvents,
   monthlyRating,
   riyadhMonthKey,
@@ -35,7 +36,7 @@ export interface SettleInput {
     cityId: string;
     band: DistanceBand | null;
     rating: number;
-    /** CR v3 section 7: a ghost (recorded) opponent; counts for rating, not for qualification. */
+    /** Ghost (recorded) opponent: no rating, points, qualification or prizes unless `ghost_counts_for_rating`. */
     ghost?: boolean;
     /** Challenge-a-friend match: counts for no rating, qualification, points or prizes. */
     friend?: boolean;
@@ -64,8 +65,10 @@ export function settle(
   const opponentRating = toMonthlyScale(m.opponent.rating, cfg);
 
   const counted = ranked && countedThisMonth(state, m.at) < cfg.monthlyCap;
-  const points = counted ? monthlyPoints(outcome, myScore, cfg) : 0;
-  const ratingAfter = ranked
+  const points = counted && m.opponent.ghost !== true ? monthlyPoints(outcome, myScore, cfg) : 0;
+  // Ghost matches change no rating and earn no points while ghost answers are generated (owner, 15 Nov 2026).
+  const ghostCounts = m.opponent.ghost !== true || isOn('ghost_counts_for_rating');
+  const ratingAfter = ranked && ghostCounts
     ? updateRatings(ratingBefore, opponentRating, outcome, cfg).a
     : ratingBefore;
   const answered = m.mine.filter((a) => a.latencyMs !== null);
