@@ -4,6 +4,7 @@
   --font-sans: 'IBM Plex Sans Arabic', 'Tajawal', system-ui, sans-serif;
   --color-primary: #0c5a62;
   --color-action: #e7472e;
+  --color-action-strong: #c93a22; /* buttons with smaller white text (AA 4.5:1) */
   --color-highlight: #f5b73b;
   --color-bg: #f2e4cc;
   --color-card: #fff7ec;

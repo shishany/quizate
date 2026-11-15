@@ -4,7 +4,8 @@
   --font-sans: var(--font-plex), system-ui, sans-serif;
   /* Sabbaq palette (change request v3). The only place for colours; older names map onto it. */
   --color-primary: #0c5a62; /* splash, correct answer, player side */
-  --color-action: #e7472e; /* main buttons, opponent side, alerts */
+  --color-action: #e7472e;
+  --color-action-strong: #c93a22; /* buttons with smaller white text (AA 4.5:1) */ /* main buttons, opponent side, alerts */
   --color-highlight: #f5b73b; /* timer, own rank row, prize zone */
   --color-bg: #f2e4cc; /* screen background */
   --color-card: #fff7ec; /* cards, tables */
