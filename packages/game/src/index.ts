@@ -11,3 +11,4 @@ export * from './bot.js';
 export * from './fairplay.js';
 export * from './prizes.js';
 export * from './engagement.js';
+export * from './features.js';

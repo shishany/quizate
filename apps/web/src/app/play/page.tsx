@@ -1,4 +1,5 @@
 'use client';
+import { isOn } from '@quizate/game';
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -58,12 +59,12 @@ export default function Home() {
           </span>
         </Link>
       )}
-      <DailyClaim />
+      {isOn('daily_claim') && <DailyClaim />}
 
       <Card
         title={d.home.monthTitle}
         action={
-          <Link
+          isOn('ladder') && <Link
             href="/play/ladder"
             className="rounded-full bg-gold/15 px-3 py-1 text-xs font-bold text-gold-ink hover:bg-gold/25"
           >
@@ -144,21 +145,21 @@ export default function Home() {
         disabled={Boolean(blocked)}
         blocked={blocked}
       />
-      <MirrorCard />
-      <ModeCard
+      {isOn('mirror_challenge') && <MirrorCard />}
+      {isOn('practice_bot') && <ModeCard
         title={d.home.practiceTitle}
         body={d.home.practiceBody}
         href="/play/practice"
         accent="ok"
-      />
-      <ModeCard
+      />}
+      {isOn('speed_round') && <ModeCard
         title={d.home.speedTitle}
         body={fill(d.home.speedBody, { s: num(cfg.speedRound.seconds) })}
         meta={state.speedBest ? fill(d.home.speedBest, { n: num(state.speedBest) }) : undefined}
         href="/play/speed"
         accent="gold"
-      />
-      <Missions />
+      />}
+      {isOn('missions') && <Missions />}
       <QuestionOfDay />
     </div>
   );
