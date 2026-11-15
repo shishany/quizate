@@ -43,6 +43,12 @@ export const en: Dictionary = {
     adminCta: 'Enter the admin console',
   },
   signin: {
+    guardianInvalid: 'Enter your guardian\'s mobile (starts with 5, not your own number).',
+    guardianIntro: 'You are 13 to 17, so we need your guardian\'s consent. We will send a code to their mobile.',
+    guardianLabel: 'Guardian\'s mobile',
+    guardianCode: 'Guardian\'s code',
+    guardianCodeHint: 'In the sample version the code is 000000. Your guardian can also confirm later.',
+    guardianSend: 'Send code to guardian',
     methodIntro:
       'Choose how to sign up. A mobile number is enough to play; Nafath verification is needed later for the prize ranking and payouts.',
     methodPhone: 'Sign up with a mobile number',
@@ -129,6 +135,7 @@ export const en: Dictionary = {
     profile: 'Account',
   },
   home: {
+    guardianPending: 'Waiting for your guardian\'s consent before you can play.',
     verifyTitle: 'Verify your account for prizes',
     verifyBody: 'Nafath and your IBAN are needed for the prize ranking and payouts.',
     verifyCta: 'Verify',

@@ -47,7 +47,7 @@ None yet. Each prompt that adds a key lists it here with its BRD source, default
 | Key                         | Default | Notes                                                                                                                                                                                                                      |
 | --------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `identity.iban_required_at` | `prize` | `signup` \| `ranked` \| `prize`: when Nafath identity and a verified IBAN (same ID number) are required. Owner decision 2026-10-30: a mobile number is enough to play, so the default is `prize` (BRD v1.1 said `signup`). |
-| Minimum age to play         | 18      | Declared at mobile sign-up; verified by Nafath before payouts (BRD v1.1).                                                                                                                                                  |
+| Minimum age to play         | 13      | Sabbaq CR v3: under 13 blocked; 13-17 `age_group=youth`, plays once guardian OTP consent is `granted`; cash needs 18+ and `id_verified` (admin, at payout). |
 
 ## Engagement configuration (`packages/game/src/engagement.ts`, FR-30)
 

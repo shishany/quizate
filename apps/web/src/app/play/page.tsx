@@ -1,5 +1,5 @@
 'use client';
-import { isOn } from '@quizate/game';
+import { canPlay, isOn } from '@quizate/game';
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -31,7 +31,9 @@ export default function Home() {
     state.ibanRequiredAt === 'ranked' && !(state.player?.identityVerifiedAt && state.player.iban);
   const left = rankedLeftToday(history, now, cfg);
   const tier = ENG.ladder.tiers[e.ladder.tierIndex];
-  const blocked = needsIban
+  const blocked = state.player && !canPlay(state.player)
+    ? d.home.guardianPending
+    : needsIban
     ? d.home.ibanNeeded
     : !limits.ok
       ? limits.reason === 'DAILY_LIMIT'

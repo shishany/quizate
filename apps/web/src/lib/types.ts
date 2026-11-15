@@ -5,6 +5,7 @@ import type {
   RankedResult,
   SelectableQuestion,
 } from '@quizate/game';
+import type { AgeGroup, ConsentStatus, GuardianConsent } from '@quizate/game';
 import type { BiText, Category } from '@/data/questions';
 
 export type Locale = 'ar' | 'en' | 'ur';
@@ -61,6 +62,12 @@ export interface Player {
   cityId: string;
   rating: number;
   createdAt: string;
+  /** CR v3 section 3: 13-17 is 'youth' and plays only once guardian consent is 'granted'. Missing = adult. */
+  ageGroup?: AgeGroup;
+  consentStatus?: ConsentStatus;
+  guardianConsent?: GuardianConsent | null;
+  /** Set by an admin at payout; with 18+ it makes the player cash eligible. */
+  idVerified?: boolean;
   consents: {
     type: 'terms' | 'privacy' | 'location' | 'marketing';
     version: string;
