@@ -166,6 +166,8 @@ export const ar = {
     unranked: 'لا ترتيب بعد',
   },
   mm: {
+    category: 'الفئة',
+    startChallenge: 'ابدأ التحدي',
     title: 'البحث عن منافس',
     searching: 'جارٍ البحث…',
     waited: 'مدة الانتظار: {s} ث',
@@ -385,6 +387,7 @@ export const ar = {
       sports: 'رياضة',
       general: 'معلومات عامة',
       saudi: 'السعودية',
+      literature: 'أدب',
     },
     count: 'العدد: {n}',
     question: 'السؤال',

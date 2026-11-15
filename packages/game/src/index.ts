@@ -13,3 +13,4 @@ export * from './prizes.js';
 export * from './engagement.js';
 export * from './features.js';
 export * from './age.js';
+export * from './categories.js';

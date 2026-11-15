@@ -10,6 +10,10 @@ import {
   searchStep,
   seededRng,
   selectQuestions,
+  isOn,
+  MATCH_CATEGORIES,
+  questionsInCategory,
+  type MatchCategoryId,
   shuffle,
   type AnswerRecord,
   type DistanceBand,
@@ -50,6 +54,7 @@ export default function RankedPage() {
   const [useLocation, setUseLocation] = useState(false);
   const [locationMsg, setLocationMsg] = useState('');
   const [problem, setProblem] = useState('');
+  const [category, setCategory] = useState<MatchCategoryId>('mixed');
   const [tick, setTick] = useState(0);
   const arrivals = useRef<{ p: SamplePlayer; at: number }[]>([]);
   const hasLocationConsent = Boolean(player?.consents.some((c) => c.type === 'location'));
@@ -132,7 +137,7 @@ export default function RankedPage() {
     if (phase.kind !== 'found' || !player) return;
     const seed = Date.now() % 2_147_483_647;
     const picked = selectQuestions(
-      state.questions,
+      questionsInCategory(state.questions, category),
       new Map(Object.entries(state.seen)),
       new Date(),
       cfg,
@@ -244,6 +249,24 @@ export default function RankedPage() {
 
       {phase.kind === 'setup' && allowed.ok && (
         <Card>
+          {isOn('categories') && (
+            <fieldset className="mb-4">
+              <legend className="mb-2 font-medium">{d.mm.category}</legend>
+              <div className="grid grid-cols-3 gap-2">
+                {MATCH_CATEGORIES.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    aria-pressed={category === c.id}
+                    onClick={() => setCategory(c.id)}
+                    className={`rounded-xl border px-2 py-2 text-sm font-semibold ${category === c.id ? 'border-primary bg-primary text-white' : 'border-line bg-card text-ink hover:bg-bg'}`}
+                  >
+                    {pick(c.name)}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+          )}
           {hasLocationConsent ? (
             <label className="flex items-start gap-3">
               <input
@@ -263,7 +286,7 @@ export default function RankedPage() {
             </p>
           )}
           <Button className="mt-4 w-full" size="lg" onClick={begin}>
-            {d.home.play}
+            {d.mm.startChallenge}
           </Button>
           <p className="mt-3 text-xs text-muted">{d.mm.sampleNote}</p>
         </Card>

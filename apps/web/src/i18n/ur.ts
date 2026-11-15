@@ -173,6 +173,8 @@ export const ur: Dictionary = {
     unranked: 'ابھی درجہ نہیں',
   },
   mm: {
+    category: 'زمرہ',
+    startChallenge: 'چیلنج شروع کریں',
     title: 'مخالف کی تلاش',
     searching: 'تلاش جاری ہے…',
     waited: 'انتظار: {s} سیکنڈ',
@@ -403,6 +405,7 @@ export const ur: Dictionary = {
       sports: 'کھیل',
       general: 'عام معلومات',
       saudi: 'سعودی عرب',
+      literature: 'ادب',
     },
     count: 'تعداد: {n}',
     question: 'سوال',

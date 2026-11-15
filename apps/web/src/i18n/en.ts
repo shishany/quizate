@@ -169,6 +169,8 @@ export const en: Dictionary = {
     unranked: 'Not ranked yet',
   },
   mm: {
+    category: 'Category',
+    startChallenge: 'Start the challenge',
     title: 'Finding an opponent',
     searching: 'Searching…',
     waited: 'Waiting: {s} s',
@@ -398,6 +400,7 @@ export const en: Dictionary = {
       sports: 'Sports',
       general: 'General knowledge',
       saudi: 'Saudi Arabia',
+      literature: 'Literature',
     },
     count: 'Count: {n}',
     question: 'Question',
