@@ -303,8 +303,12 @@ export default function RankedPage() {
                     key={c.id}
                     type="button"
                     aria-pressed={category === c.id}
+                    disabled={
+                      questionsInCategory(state.questions, c.id).filter((q) => q.status === 'published').length <
+                      cfg.questionsPerMatch
+                    }
                     onClick={() => setCategory(c.id)}
-                    className={`rounded-xl border px-2 py-2 text-sm font-semibold ${category === c.id ? 'border-primary bg-primary text-white' : 'border-line bg-card text-ink hover:bg-bg'}`}
+                    className={`rounded-xl border px-2 py-2 text-sm font-semibold ${category === c.id ? 'border-primary bg-primary text-white' : 'border-line bg-card text-ink hover:bg-bg'} disabled:cursor-not-allowed disabled:opacity-40`}
                   >
                     {pick(c.name)}
                   </button>

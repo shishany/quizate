@@ -30,7 +30,7 @@ import type {
 } from './types';
 
 export const STORAGE_KEY = 'quizate-demo-v1';
-export const STATE_VERSION = 5;
+export const STATE_VERSION = 6;
 
 /** The one verification code of the sample version, for every number and every admin role. No message is sent. */
 export const SAMPLE_CODE = '000000';
@@ -245,7 +245,7 @@ function toQuestion(s: SeedQuestion, status: Question['status'], at: string): Qu
   const author = ADMIN_USERS.content_editor.id;
   const reviewer = status === 'published' ? ADMIN_USERS.content_reviewer.id : null;
   const history: Question['history'] = [{ at, actor: author, action: 'created', version: 1 }];
-  if (status === 'in_review' || status === 'published')
+  if (status === 'in_review' || status === 'needs_review' || status === 'published')
     history.push({ at, actor: author, action: 'submitted', version: 1 });
   if (status === 'published' && reviewer)
     history.push(
@@ -342,7 +342,7 @@ function sampleFraud(now: Date): FraudFlag[] {
 export function initialState(now = new Date()): DemoState {
   const at = new Date(now.getTime() - 40 * 24 * 3600_000).toISOString();
   const questions = [
-    ...SEED_QUESTIONS.map((s) => toQuestion(s, 'published', at)),
+    ...SEED_QUESTIONS.map((s) => toQuestion(s, s.needsReview ? 'needs_review' : 'published', at)),
     ...SPONSORED_QUESTIONS.map((s) => toQuestion(s, 'published', at)),
     ...IMAGE_QUESTIONS.map((s) => toQuestion(s, 'published', at)),
     ...BRAND_QUESTIONS.map((s) => toQuestion(s, 'published', at)),

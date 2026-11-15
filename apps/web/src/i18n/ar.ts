@@ -388,7 +388,7 @@ export const ar = {
     status: 'الحالة',
     difficulty: 'الصعوبة',
     category: 'التصنيف',
-    statuses: { draft: 'مسودة', in_review: 'قيد المراجعة', published: 'منشور', retired: 'مسحوب' },
+    statuses: { draft: 'مسودة', in_review: 'قيد المراجعة', needs_review: 'بحاجة إلى مراجعة', published: 'منشور', retired: 'مسحوب' },
     difficulties: { easy: 'سهل', medium: 'متوسط', hard: 'صعب' },
     categories: {
       geography: 'جغرافيا',

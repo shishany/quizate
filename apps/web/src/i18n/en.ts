@@ -399,6 +399,7 @@ export const en: Dictionary = {
     statuses: {
       draft: 'Draft',
       in_review: 'In review',
+      needs_review: 'Needs review',
       published: 'Published',
       retired: 'Retired',
     },

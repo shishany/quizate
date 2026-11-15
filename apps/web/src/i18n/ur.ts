@@ -400,6 +400,7 @@ export const ur: Dictionary = {
     statuses: {
       draft: 'مسودہ',
       in_review: 'زیرِ جانچ',
+      needs_review: 'جائزے کی ضرورت',
       published: 'شائع شدہ',
       retired: 'واپس لیا گیا',
     },

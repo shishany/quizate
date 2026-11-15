@@ -29,6 +29,8 @@ export const FEATURE_FLAGS = {
    * TODO(owner): switch on once the match server replays real recorded matches.
    */
   ghost_counts_for_rating: false,
+  /** Owner decision 15 Nov 2026: MVP languages are Arabic (default) and English; Urdu stays built but hidden. */
+  locale_ur: false,
 } as const satisfies Record<string, boolean>;
 
 export type FeatureFlag = keyof typeof FEATURE_FLAGS;

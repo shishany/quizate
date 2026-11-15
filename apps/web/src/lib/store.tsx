@@ -9,7 +9,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import type { CheckFailure, SponsorEvent } from '@quizate/game';
+import { isOn, type CheckFailure, type SponsorEvent } from '@quizate/game';
 import {
   claimState,
   riyadhDayKey,
@@ -178,7 +178,7 @@ export function questionActionAllowed(
       return editor && q.status === 'draft';
     case 'approved':
     case 'rejected':
-      return reviewer && q.status === 'in_review' && q.authorId !== me;
+      return reviewer && (q.status === 'in_review' || q.status === 'needs_review') && q.authorId !== me;
     case 'retired':
     case 'voided':
       return reviewer && q.status === 'published';
@@ -192,7 +192,8 @@ export function reducer(state: DemoState, action: Action): DemoState {
     case 'hydrate':
       return action.state;
     case 'locale':
-      return { ...state, locale: action.locale };
+      // Urdu is hidden in the MVP (flag locale_ur).
+      return action.locale === 'ur' && !isOn('locale_ur') ? state : { ...state, locale: action.locale };
     case 'reset':
       return { ...initialState(), locale: state.locale };
     case 'signIn':
@@ -614,7 +615,8 @@ function load(): DemoState {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as DemoState;
-      if (parsed.version === STATE_VERSION) return parsed;
+      if (parsed.version === STATE_VERSION)
+        return parsed.locale === 'ur' && !isOn('locale_ur') ? { ...parsed, locale: 'ar' } : parsed;
     }
   } catch {
     // Storage blocked or corrupt: start from the sample.

@@ -22,6 +22,8 @@ export interface SeedQuestion {
   /** Correct answer first. */
   options: [BiText, BiText, BiText, BiText];
   campaignId?: string;
+  /** New content that must be approved in the question-review screen before it enters matches. */
+  needsReview?: boolean;
   /** Image questions: a key into QUESTION_IMAGES (data/images.tsx). */
   image?: string;
 }
@@ -46,6 +48,8 @@ function q(
     options: opts as SeedQuestion['options'],
   };
 }
+
+const fresh = (x: SeedQuestion): SeedQuestion => ({ ...x, needsReview: true });
 
 export const SEED_QUESTIONS: SeedQuestion[] = [
   // Easy
@@ -1043,8 +1047,9 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['يوهانس كبلر', 'Johannes Kepler'],
     ['ألبرت أينشتاين', 'Albert Einstein'],
   ),
-  // Sabbaq CR v3 section 4: sample Literature, Sport and History questions so every category fills a match.
-  q(
+  // Sabbaq CR v3 section 4: 30 sample Literature, Sport and History questions. Owner decision 15 Nov 2026: they
+  // start as `needs_review` and enter matches only once approved in the question-review screen.
+  fresh(q(
     'literature',
     'easy',
     'من الشاعر الملقّب بـ«أمير الشعراء»؟',
@@ -1053,8 +1058,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['حافظ إبراهيم', 'Hafez Ibrahim'],
     ['المتنبي', 'Al-Mutanabbi'],
     ['نزار قباني', 'Nizar Qabbani'],
-  ),
-  q(
+  )),
+  fresh(q(
     'literature',
     'easy',
     'أي أديب عربي نال جائزة نوبل للآداب عام 1988؟',
@@ -1063,8 +1068,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['طه حسين', 'Taha Hussein'],
     ['توفيق الحكيم', 'Tawfiq al-Hakim'],
     ['جبران خليل جبران', 'Kahlil Gibran'],
-  ),
-  q(
+  )),
+  fresh(q(
     'literature',
     'easy',
     'من مؤلف كتاب «النبي» الذي كُتب بالإنجليزية؟',
@@ -1073,8 +1078,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['ميخائيل نعيمة', 'Mikhail Naimy'],
     ['إيليا أبو ماضي', 'Elia Abu Madi'],
     ['أمين الريحاني', 'Ameen Rihani'],
-  ),
-  q(
+  )),
+  fresh(q(
     'literature',
     'easy',
     'من الراوية التي تحكي حكايات «ألف ليلة وليلة»؟',
@@ -1083,8 +1088,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['دنيازاد', 'Dunyazad'],
     ['بلقيس', 'Bilqis'],
     ['عبلة', 'Abla'],
-  ),
-  q(
+  )),
+  fresh(q(
     'literature',
     'easy',
     'من مؤلف مسرحية «هاملت»؟',
@@ -1093,8 +1098,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['تشارلز ديكنز', 'Charles Dickens'],
     ['موليير', 'Molière'],
     ['غوته', 'Goethe'],
-  ),
-  q(
+  )),
+  fresh(q(
     'literature',
     'medium',
     'من مؤلف خماسية «مدن الملح»؟',
@@ -1103,8 +1108,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['غازي القصيبي', 'Ghazi Al-Gosaibi'],
     ['نجيب محفوظ', 'Naguib Mahfouz'],
     ['الطيب صالح', 'Tayeb Salih'],
-  ),
-  q(
+  )),
+  fresh(q(
     'literature',
     'medium',
     'من مؤلف رواية «موسم الهجرة إلى الشمال»؟',
@@ -1113,8 +1118,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['عبدالرحمن منيف', 'Abdul Rahman Munif'],
     ['يوسف إدريس', 'Yusuf Idris'],
     ['حنا مينه', 'Hanna Mina'],
-  ),
-  q(
+  )),
+  fresh(q(
     'literature',
     'medium',
     'من مؤلف رواية «دون كيخوته»؟',
@@ -1123,8 +1128,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['فيكتور هوغو', 'Victor Hugo'],
     ['دانتي', 'Dante'],
     ['تولستوي', 'Leo Tolstoy'],
-  ),
-  q(
+  )),
+  fresh(q(
     'literature',
     'medium',
     'لمن المعلّقة التي مطلعها «قفا نبكِ من ذكرى حبيبٍ ومنزلِ»؟',
@@ -1133,8 +1138,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['عنترة بن شداد', 'Antarah ibn Shaddad'],
     ['زهير بن أبي سلمى', 'Zuhayr ibn Abi Sulma'],
     ['طرفة بن العبد', 'Tarafa ibn al-Abd'],
-  ),
-  q(
+  )),
+  fresh(q(
     'literature',
     'hard',
     'أي شاعر كانت كنيته «أبو الطيب»؟',
@@ -1143,8 +1148,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['أبو تمام', 'Abu Tammam'],
     ['البحتري', 'Al-Buhturi'],
     ['أبو العلاء المعري', 'Al-Ma’arri'],
-  ),
-  q(
+  )),
+  fresh(q(
     'literature',
     'hard',
     'من مؤلف رواية «شقة الحرية»؟',
@@ -1153,8 +1158,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['عبده خال', 'Abdo Khal'],
     ['رجاء عالم', 'Raja Alem'],
     ['تركي الحمد', 'Turki al-Hamad'],
-  ),
-  q(
+  )),
+  fresh(q(
     'literature',
     'hard',
     'من نقل «كليلة ودمنة» إلى العربية؟',
@@ -1163,8 +1168,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['الجاحظ', 'Al-Jahiz'],
     ['ابن قتيبة', 'Ibn Qutayba'],
     ['الأصفهاني', 'Al-Isfahani'],
-  ),
-  q(
+  )),
+  fresh(q(
     'literature',
     'hard',
     'من مؤلف السيرة الذاتية «الأيام»؟',
@@ -1173,8 +1178,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['العقاد', 'Abbas al-Aqqad'],
     ['المازني', 'Ibrahim al-Mazini'],
     ['أحمد أمين', 'Ahmad Amin'],
-  ),
-  q(
+  )),
+  fresh(q(
     'sports',
     'easy',
     'كم لاعباً لكل فريق داخل ملعب كرة السلة؟',
@@ -1183,8 +1188,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['6', '6'],
     ['7', '7'],
     ['4', '4'],
-  ),
-  q(
+  )),
+  fresh(q(
     'sports',
     'easy',
     'كم عدد الحلقات في شعار الألعاب الأولمبية؟',
@@ -1193,8 +1198,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['4', '4'],
     ['6', '6'],
     ['7', '7'],
-  ),
-  q(
+  )),
+  fresh(q(
     'sports',
     'easy',
     'أي دولة استضافت كأس العالم لكرة القدم 2022؟',
@@ -1203,8 +1208,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['روسيا', 'Russia'],
     ['البرازيل', 'Brazil'],
     ['الإمارات', 'UAE'],
-  ),
-  q(
+  )),
+  fresh(q(
     'sports',
     'medium',
     'أي منتخب هزمه المنتخب السعودي في أولى مبارياته بكأس العالم 2022؟',
@@ -1213,8 +1218,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['المكسيك', 'Mexico'],
     ['بولندا', 'Poland'],
     ['فرنسا', 'France'],
-  ),
-  q(
+  )),
+  fresh(q(
     'sports',
     'medium',
     'كم تبلغ مسافة سباق الماراثون تقريباً؟',
@@ -1223,8 +1228,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['21 كم', '21 km'],
     ['30 كم', '30 km'],
     ['50 كم', '50 km'],
-  ),
-  q(
+  )),
+  fresh(q(
     'sports',
     'medium',
     'في أي رياضة تُستخدم كلمة «لوف» للدلالة على صفر نقاط؟',
@@ -1233,8 +1238,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['الغولف', 'Golf'],
     ['البيسبول', 'Baseball'],
     ['الكريكيت', 'Cricket'],
-  ),
-  q(
+  )),
+  fresh(q(
     'sports',
     'medium',
     'أي منتخب فاز بكأس العالم لكرة القدم أكثر من غيره؟',
@@ -1243,8 +1248,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['ألمانيا', 'Germany'],
     ['إيطاليا', 'Italy'],
     ['الأرجنتين', 'Argentina'],
-  ),
-  q(
+  )),
+  fresh(q(
     'sports',
     'hard',
     'في أي عام ستستضيف السعودية كأس العالم لكرة القدم؟',
@@ -1253,8 +1258,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['2030', '2030'],
     ['2026', '2026'],
     ['2038', '2038'],
-  ),
-  q(
+  )),
+  fresh(q(
     'sports',
     'hard',
     'في أي مدينة أقيمت أول دورة ألعاب أولمبية حديثة عام 1896؟',
@@ -1263,8 +1268,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['باريس', 'Paris'],
     ['لندن', 'London'],
     ['روما', 'Rome'],
-  ),
-  q(
+  )),
+  fresh(q(
     'sports',
     'hard',
     'أي قطعة شطرنج تتحرك قطرياً فقط؟',
@@ -1273,8 +1278,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['الرخ', 'Rook'],
     ['الحصان', 'Knight'],
     ['الملكة', 'Queen'],
-  ),
-  q(
+  )),
+  fresh(q(
     'history',
     'easy',
     'في أي عام أُعلن توحيد المملكة العربية السعودية باسمها الحالي؟',
@@ -1283,8 +1288,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['1902', '1902'],
     ['1953', '1953'],
     ['1945', '1945'],
-  ),
-  q(
+  )),
+  fresh(q(
     'history',
     'easy',
     'من أول إنسان مشى على سطح القمر؟',
@@ -1293,8 +1298,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['يوري غاغارين', 'Yuri Gagarin'],
     ['باز ألدرين', 'Buzz Aldrin'],
     ['جون غلين', 'John Glenn'],
-  ),
-  q(
+  )),
+  fresh(q(
     'history',
     'easy',
     'في أي عام انتهت الحرب العالمية الثانية؟',
@@ -1303,8 +1308,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['1939', '1939'],
     ['1918', '1918'],
     ['1950', '1950'],
-  ),
-  q(
+  )),
+  fresh(q(
     'history',
     'medium',
     'في أي عام تأسست الدولة السعودية الأولى؟',
@@ -1313,8 +1318,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['1818', '1818'],
     ['1902', '1902'],
     ['1824', '1824'],
-  ),
-  q(
+  )),
+  fresh(q(
     'history',
     'medium',
     'أي حضارة بنت مدينة ماتشو بيتشو؟',
@@ -1323,8 +1328,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['المايا', 'The Maya'],
     ['الأزتك', 'The Aztecs'],
     ['الرومان', 'The Romans'],
-  ),
-  q(
+  )),
+  fresh(q(
     'history',
     'hard',
     'من نحت مقابر الحِجر (مدائن صالح) في الصخر؟',
@@ -1333,8 +1338,8 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['الفينيقيون', 'The Phoenicians'],
     ['السبئيون', 'The Sabaeans'],
     ['الرومان', 'The Romans'],
-  ),
-  q(
+  )),
+  fresh(q(
     'history',
     'hard',
     'ماذا ساعد حجر رشيد على فكّه؟',
@@ -1343,7 +1348,7 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     ['الخط المسماري', 'Cuneiform'],
     ['خط المسند', 'Musnad script'],
     ['الأبجدية الفينيقية', 'Phoenician alphabet'],
-  ),
+  )),
 ];
 
 /** Sample sponsor campaign questions (BR-14: labelled, scored like any other, at most 2 per match). */

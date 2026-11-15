@@ -1,6 +1,7 @@
 'use client';
 
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import { isOn } from '@quizate/game';
 import { LANGUAGE_NAMES, useT } from '@/i18n';
 import type { Locale } from '@/lib/types';
 import { useStore } from '@/lib/store';
@@ -115,7 +116,7 @@ export function LangToggle({ className = '' }: { className?: string }) {
       aria-label={d.common.language}
       className={`inline-flex rounded-full border border-line bg-white p-0.5 ${className}`}
     >
-      {(Object.keys(LANGUAGE_NAMES) as Locale[]).map((l) => (
+      {(Object.keys(LANGUAGE_NAMES) as Locale[]).filter((l) => l !== 'ur' || isOn('locale_ur')).map((l) => (
         <button
           key={l}
           type="button"

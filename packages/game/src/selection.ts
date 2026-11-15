@@ -7,7 +7,8 @@ export type Difficulty = 'easy' | 'medium' | 'hard';
 export interface SelectableQuestion {
   id: string;
   difficulty: Difficulty;
-  status: 'draft' | 'in_review' | 'published' | 'retired';
+  /** `needs_review`: new content held back from matches until approved in the question-review screen. */
+  status: 'draft' | 'in_review' | 'needs_review' | 'published' | 'retired';
   /** UTC ISO, or null for no expiry. */
   expiresAt: string | null;
   /** Set when the question belongs to a sponsor campaign that is live. */
