@@ -15,3 +15,4 @@ export * from './features.js';
 export * from './age.js';
 export * from './categories.js';
 export * from './board.js';
+export * from './ghost.js';

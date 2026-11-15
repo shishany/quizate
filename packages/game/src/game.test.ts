@@ -193,15 +193,27 @@ describe('limits', () => {
   });
 });
 
+// The BRD's nearby-first steps stay available behind `nearby_matching` (off in Sabbaq's MVP); tested on their own config.
+const nearbyCfg = {
+  ...cfg,
+  matchmaking: [
+    { fromSeconds: 0, maxKm: 10, ratingBand: 150, sameCity: false, offerPractice: false },
+    { fromSeconds: 10, maxKm: 50, ratingBand: 250, sameCity: false, offerPractice: false },
+    { fromSeconds: 20, maxKm: null, ratingBand: null, sameCity: true, offerPractice: false },
+    { fromSeconds: 30, maxKm: null, ratingBand: null, sameCity: false, offerPractice: false },
+    { fromSeconds: 60, maxKm: null, ratingBand: null, sameCity: false, offerPractice: true },
+  ],
+};
+
 describe('matchmaking (BRD section 4, FR-05)', () => {
   const me = { id: 'me', rating: 1200, cityId: 'riyadh', location: { lat: 24.71, lng: 46.68 } };
 
   it('widens the search by wait time', () => {
-    expect(searchStep(0, cfg).step).toMatchObject({ maxKm: 10, ratingBand: 150 });
-    expect(searchStep(12, cfg).step).toMatchObject({ maxKm: 50, ratingBand: 250 });
-    expect(searchStep(25, cfg).step).toMatchObject({ sameCity: true });
-    expect(searchStep(45, cfg).index).toBe(3);
-    expect(searchStep(61, cfg).step.offerPractice).toBe(true);
+    expect(searchStep(0, nearbyCfg).step).toMatchObject({ maxKm: 10, ratingBand: 150 });
+    expect(searchStep(12, nearbyCfg).step).toMatchObject({ maxKm: 50, ratingBand: 250 });
+    expect(searchStep(25, nearbyCfg).step).toMatchObject({ sameCity: true });
+    expect(searchStep(45, nearbyCfg).index).toBe(3);
+    expect(searchStep(61, nearbyCfg).step.offerPractice).toBe(true);
   });
 
   it('prefers near players within the rating band, then falls back nationwide', () => {
@@ -217,12 +229,12 @@ describe('matchmaking (BRD section 4, FR-05)', () => {
       cityId: 'jeddah',
       location: { lat: 21.54, lng: 39.17 },
     };
-    expect(findOpponent(me, [near, farStrong], 0, cfg)).toMatchObject({
+    expect(findOpponent(me, [near, farStrong], 0, nearbyCfg)).toMatchObject({
       opponent: { id: 'near' },
       band: 'under10',
     });
-    expect(findOpponent(me, [farStrong], 5, cfg)).toBeNull();
-    expect(findOpponent(me, [farStrong], 35, cfg)).toMatchObject({
+    expect(findOpponent(me, [farStrong], 5, nearbyCfg)).toBeNull();
+    expect(findOpponent(me, [farStrong], 35, nearbyCfg)).toMatchObject({
       opponent: { id: 'jeddah' },
       band: 'saudi',
     });

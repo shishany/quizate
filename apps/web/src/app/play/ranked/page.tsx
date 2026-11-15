@@ -10,6 +10,11 @@ import {
   searchStep,
   seededRng,
   selectQuestions,
+  canPlay,
+  ghostDue,
+  inviteCode,
+  isInviteCode,
+  pickGhost,
   isOn,
   MATCH_CATEGORIES,
   questionsInCategory,
@@ -28,11 +33,12 @@ import { SAMPLE_PLAYERS, cityById } from '@/lib/sample';
 import { settle } from '@/lib/settle';
 import { useStore } from '@/lib/store';
 import type { MatchSummary, Question, SamplePlayer } from '@/lib/types';
+import { toMonthlyScale } from '@/lib/sample';
 
 type Phase =
   | { kind: 'setup' }
   | { kind: 'search'; startedAt: number; location: QueueEntry['location'] }
-  | { kind: 'found'; opponent: SamplePlayer; band: DistanceBand; foundAt: number }
+  | { kind: 'found'; opponent: SamplePlayer; band: DistanceBand; foundAt: number; ghost?: boolean }
   | {
       kind: 'match';
       id: string;
@@ -40,6 +46,7 @@ type Phase =
       opponent: SamplePlayer;
       band: DistanceBand;
       questions: Question[];
+      ghost?: boolean;
     }
   | { kind: 'result'; summary: MatchSummary; questions: Question[]; mine: AnswerRecord[] };
 
@@ -56,6 +63,18 @@ export default function RankedPage() {
   const [problem, setProblem] = useState('');
   const [category, setCategory] = useState<MatchCategoryId>('mixed');
   const [tick, setTick] = useState(0);
+  const [inviteLink, setInviteLink] = useState('');
+  const [invited, setInvited] = useState('');
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get('invite') ?? '';
+    if (isInviteCode(code)) setInvited(code);
+  }, []);
+  function makeInvite() {
+    const code = inviteCode(seededRng(Date.now() % 2_147_483_647));
+    const link = `${window.location.origin}/play/ranked?invite=${code}`;
+    setInviteLink(link);
+    void navigator.clipboard?.writeText(link).catch(() => undefined);
+  }
   const arrivals = useRef<{ p: SamplePlayer; at: number }[]>([]);
   const hasLocationConsent = Boolean(player?.consents.some((c) => c.type === 'location'));
 
@@ -67,7 +86,11 @@ export default function RankedPage() {
   // FR-04: when configured, ranked play needs a Nafath-verified identity and a verified IBAN first.
   const needsVerification =
     state.ibanRequiredAt === 'ranked' && !(player?.identityVerifiedAt && player.iban);
-  const allowed = needsVerification ? ({ ok: false, reason: 'VERIFY' } as const) : limits;
+  const allowed = player && !canPlay(player)
+    ? ({ ok: false, reason: 'GUARDIAN' } as const)
+    : needsVerification
+      ? ({ ok: false, reason: 'VERIFY' } as const)
+      : limits;
 
   useEffect(() => {
     if (phase.kind !== 'search' && phase.kind !== 'found') return;
@@ -81,7 +104,12 @@ export default function RankedPage() {
     const waited = (Date.now() - phase.startedAt) / 1000;
     const pool = arrivals.current
       .filter((a) => a.at <= waited)
-      .map((a) => ({ id: a.p.id, rating: a.p.rating, cityId: a.p.cityId, location: a.p.location }));
+      .map((a) => ({
+        id: a.p.id,
+        rating: toMonthlyScale(a.p.rating, cfg),
+        cityId: a.p.cityId,
+        location: isOn('nearby_matching') ? a.p.location : null,
+      }));
     const me: QueueEntry = {
       id: player.id,
       rating: player.rating,
@@ -92,6 +120,12 @@ export default function RankedPage() {
     if (hit) {
       const opponent = SAMPLE_PLAYERS.find((p) => p.id === hit.opponent.id) as SamplePlayer;
       setPhase({ kind: 'found', opponent, band: hit.band, foundAt: Date.now() });
+    } else if (isOn('ghost_opponent') && ghostDue(waited, cfg)) {
+      // CR v3 section 7: replay a stored real match of similar rating. The sample version has no stored matches, so
+      // the closest-rated sample player's play is generated; the match server replays real recordings.
+      const recordings = SAMPLE_PLAYERS.map((p) => ({ id: p.id, rating: toMonthlyScale(p.rating, cfg), p }));
+      const ghost = pickGhost(recordings, player.rating);
+      if (ghost) setPhase({ kind: 'found', opponent: ghost.p, band: 'saudi', foundAt: Date.now(), ghost: true });
     }
   }, [tick, phase, player, cfg]);
 
@@ -167,6 +201,7 @@ export default function RankedPage() {
       opponent: o,
       band: phase.band,
       questions: picked.questions,
+      ghost: phase.ghost,
     });
   }
 
@@ -181,7 +216,14 @@ export default function RankedPage() {
       mine: outcome.mine,
       theirs: outcome.theirs,
       forfeit: outcome.forfeit,
-      opponent: { id: o.id, name: o.name, cityId: o.cityId, band: phase.band, rating: o.rating },
+      opponent: {
+        id: o.id,
+        name: o.name,
+        cityId: o.cityId,
+        band: phase.band,
+        rating: o.rating,
+        ghost: phase.ghost === true,
+      },
     });
     dispatch(action);
     live.matchId = null;
@@ -238,7 +280,9 @@ export default function RankedPage() {
 
       {!allowed.ok && phase.kind === 'setup' && (
         <Notice tone="warn">
-          {allowed.reason === 'VERIFY'
+          {allowed.reason === 'GUARDIAN'
+            ? d.home.guardianPending
+            : allowed.reason === 'VERIFY'
             ? d.home.ibanNeeded
             : allowed.reason === 'DAILY_LIMIT'
               ? d.home.dailyLimit
@@ -246,6 +290,7 @@ export default function RankedPage() {
         </Notice>
       )}
       {problem && <Notice tone="warn">{problem}</Notice>}
+      {invited && <Notice tone="brand">{fill(d.mm.invited, { code: invited })}</Notice>}
 
       {phase.kind === 'setup' && allowed.ok && (
         <Card>
@@ -267,7 +312,7 @@ export default function RankedPage() {
               </div>
             </fieldset>
           )}
-          {hasLocationConsent ? (
+          {!isOn('nearby_matching') ? null : hasLocationConsent ? (
             <label className="flex items-start gap-3">
               <input
                 type="checkbox"
@@ -288,6 +333,26 @@ export default function RankedPage() {
           <Button className="mt-4 w-full" size="lg" onClick={begin}>
             {d.mm.startChallenge}
           </Button>
+          {isOn('challenge_friend') && (
+            <div className="mt-4 rounded-xl bg-info/50 p-3">
+              <p className="font-medium">{d.mm.friendTitle}</p>
+              <p className="text-sm text-muted">{d.mm.friendBody}</p>
+              {inviteLink ? (
+                <input
+                  readOnly
+                  dir="ltr"
+                  aria-label={d.mm.friendTitle}
+                  className="mt-2 w-full rounded-lg border border-line bg-card px-3 py-2 text-sm"
+                  value={inviteLink}
+                  onFocus={(e) => e.currentTarget.select()}
+                />
+              ) : (
+                <Button variant="secondary" className="mt-2" onClick={makeInvite}>
+                  {d.mm.friendCta}
+                </Button>
+              )}
+            </div>
+          )}
           <p className="mt-3 text-xs text-muted">{d.mm.sampleNote}</p>
         </Card>
       )}
@@ -313,7 +378,9 @@ export default function RankedPage() {
             {cfg.matchmaking.map((s, i) => {
               const label = s.offerPractice
                 ? d.mm.stepPractice
-                : s.maxKm !== null
+                : s.maxKm === null && !s.sameCity && s.ratingBand !== null
+                  ? fill(d.mm.stepRating, { band: num(s.ratingBand) })
+                  : s.maxKm !== null
                   ? fill(d.mm.stepRadius, { km: num(s.maxKm), band: num(s.ratingBand ?? 0) })
                   : s.sameCity
                     ? d.mm.stepCity
@@ -331,6 +398,14 @@ export default function RankedPage() {
                 </li>
               );
             })}
+            {isOn('ghost_opponent') && (
+              <li className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-muted">
+                <span>{d.mm.stepGhost}</span>
+                <span className="tabular text-xs">
+                  {num(cfg.ghostAfterSeconds)}+ {d.common.sec}
+                </span>
+              </li>
+            )}
           </ol>
           {locationMsg && <p className="mt-3 text-sm text-warn">{locationMsg}</p>}
           <div className="mt-4 grid gap-2">
@@ -360,9 +435,13 @@ export default function RankedPage() {
               <div className="text-lg font-bold">{pick(phase.opponent.name)}</div>
               <div className="text-sm text-muted">{pick(cityById(phase.opponent.cityId).name)}</div>
               <div className="mt-1 flex flex-wrap gap-1.5">
-                <Badge tone="brand">{d.mm[`band_${phase.band}`]}</Badge>
+                {phase.ghost ? (
+                  <Badge tone="gold">{d.mm.ghostLabel}</Badge>
+                ) : (
+                  <Badge tone="brand">{d.mm[`band_${phase.band}`]}</Badge>
+                )}
                 <Badge>
-                  {d.mm.rating} {num(phase.opponent.rating)}
+                  {d.mm.rating} {num(toMonthlyScale(phase.opponent.rating, cfg))}
                 </Badge>
               </div>
             </div>

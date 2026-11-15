@@ -169,6 +169,13 @@ export const en: Dictionary = {
     unranked: 'Not ranked yet',
   },
   mm: {
+    stepRating: 'Similar rating ±{band}',
+    stepGhost: 'Recorded opponent',
+    ghostLabel: 'Recorded opponent',
+    friendTitle: 'Challenge a friend',
+    friendBody: 'Create an invite link and send it to a friend for a private match.',
+    friendCta: 'Create invite link',
+    invited: 'Private match invite ({code}). The private match starts when your friend connects, which needs the match server; the sample version shows the invite only.',
     category: 'Category',
     startChallenge: 'Start the challenge',
     title: 'Finding an opponent',

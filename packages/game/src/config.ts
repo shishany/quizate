@@ -34,6 +34,8 @@ export interface GameConfig {
   /** BR-14 */ maxSponsored: number;
   /** Build prompt 4 (default mix) */ difficultyMix: { easy: number; medium: number; hard: number };
   /** BRD section 4, steps 1-5 */ matchmaking: MatchmakingStep[];
+  /** Sabbaq CR v3 section 7: with no opponent after this wait, offer a ghost opponent (a replayed real match). */
+  ghostAfterSeconds: number;
   /** Build prompt 5 */ acceptSeconds: number;
   /** BRD section 3, fair-play signals */ fairPlay: { minHumanMs: number; maxFastAnswers: number };
   /** Web demo mode, not in the BRD (unranked) */ speedRound: { seconds: number };
@@ -69,13 +71,15 @@ export const DEFAULT_CONFIG: GameConfig = {
   questionRepeatDays: 90,
   maxSponsored: 2,
   difficultyMix: { easy: 3, medium: 4, hard: 3 },
-  matchmaking: [
-    { fromSeconds: 0, maxKm: 10, ratingBand: 150, sameCity: false, offerPractice: false },
-    { fromSeconds: 10, maxKm: 50, ratingBand: 250, sameCity: false, offerPractice: false },
-    { fromSeconds: 20, maxKm: null, ratingBand: null, sameCity: true, offerPractice: false },
-    { fromSeconds: 30, maxKm: null, ratingBand: null, sameCity: false, offerPractice: false },
-    { fromSeconds: 60, maxKm: null, ratingBand: null, sameCity: false, offerPractice: true },
-  ],
+  // Sabbaq CR v3 section 7: rating only (nearby_matching is off), ±100 widening by 100 every 5 s.
+  matchmaking: [0, 5, 10, 15].map((fromSeconds, i) => ({
+    fromSeconds,
+    maxKm: null,
+    ratingBand: 100 * (i + 1),
+    sameCity: false,
+    offerPractice: false,
+  })),
+  ghostAfterSeconds: 20,
   acceptSeconds: 10,
   fairPlay: { minHumanMs: 800, maxFastAnswers: 2 },
   speedRound: { seconds: 60 },

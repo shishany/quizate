@@ -28,7 +28,15 @@ export interface SettleInput {
   mine: AnswerRecord[];
   theirs: AnswerRecord[];
   forfeit: boolean;
-  opponent: { id: string; name: BiText; cityId: string; band: DistanceBand | null; rating: number };
+  opponent: {
+    id: string;
+    name: BiText;
+    cityId: string;
+    band: DistanceBand | null;
+    rating: number;
+    /** CR v3 section 7: a ghost (recorded) opponent; counts for rating, not for qualification. */
+    ghost?: boolean;
+  };
 }
 
 /**
@@ -97,7 +105,8 @@ export function settle(
         outcome,
         score: myScore,
         correct: correctCount(m.mine),
-        opponentRating: opponentRating,
+        opponentRating,
+        ghost: m.opponent.ghost === true,
         questions: m.questions.length,
         latencyTotalMs: answered.reduce((s, a) => s + (a.latencyMs ?? 0), 0),
         answered: answered.length,
