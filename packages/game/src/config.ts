@@ -100,6 +100,8 @@ export const DEFAULT_CONFIG: GameConfig = {
   speedRound: { seconds: 60 },
   youthAwardSlots: 3,
   sponsor: { billableViewMs: 3000, defaultPricePer1000Halalas: 4000 },
-  prizeTableHalalas: [5000, 4000, 3000, 2000, 1000, 500, 400, 300, 200, 100].map((sar) => sar * 100),
+  prizeTableHalalas: [5000, 4000, 3000, 2000, 1000, 500, 400, 300, 200, 100].map(
+    (sar) => sar * 100,
+  ),
   collusion: { minMatches: 3, windowHours: 7 * 24, oneSidedShare: 1 },
 };

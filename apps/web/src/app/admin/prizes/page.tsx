@@ -66,7 +66,9 @@ export default function PrizesPage() {
   );
   const rowOf = (id: string) => rows.find((r) => r.playerId === id);
   const youth = rows.filter((r) => r.youthTop !== null);
-  const log = state.audit.filter((a) => a.action.startsWith('payout.') || a.action.startsWith('youth_award.'));
+  const log = state.audit.filter(
+    (a) => a.action.startsWith('payout.') || a.action.startsWith('youth_award.'),
+  );
 
   return (
     <div className="space-y-4">
@@ -119,7 +121,9 @@ export default function PrizesPage() {
       <Card title={d.prizes.queue}>
         <p className="mb-2 text-sm text-muted">{d.prizes.queueNote}</p>
         {queue.places.length === 0 ? (
-          <p className="text-sm text-muted">{fill(d.prizes.queueEmpty, { m: num(state.config.eligibility.minMatches) })}</p>
+          <p className="text-sm text-muted">
+            {fill(d.prizes.queueEmpty, { m: num(state.config.eligibility.minMatches) })}
+          </p>
         ) : (
           <ul className="divide-y divide-line">
             {queue.places.map((p) => {
@@ -212,11 +216,21 @@ function PayoutRow({ row, month, place }: { row: BoardRow; month: string; place:
           {place.status === 'id_check_pending' && (
             <div className="flex flex-wrap gap-4 text-sm">
               <label className="flex items-center gap-2">
-                <input type="checkbox" className="h-4 w-4 accent-brand" checked={idChecked} onChange={(e) => setIdChecked(e.target.checked)} />
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-brand"
+                  checked={idChecked}
+                  onChange={(e) => setIdChecked(e.target.checked)}
+                />
                 {d.prizes.idChecked}
               </label>
               <label className="flex items-center gap-2">
-                <input type="checkbox" className="h-4 w-4 accent-brand" checked={ibanName} onChange={(e) => setIbanName(e.target.checked)} />
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-brand"
+                  checked={ibanName}
+                  onChange={(e) => setIbanName(e.target.checked)}
+                />
                 {d.prizes.ibanName}
               </label>
             </div>
@@ -254,7 +268,9 @@ function PayoutRow({ row, month, place }: { row: BoardRow; month: string; place:
                   size="sm"
                   variant="danger"
                   disabled={!reason.trim()}
-                  onClick={() => dispatch({ type: 'payoutCheck', ...base, result: 'failed', failure })}
+                  onClick={() =>
+                    dispatch({ type: 'payoutCheck', ...base, result: 'failed', failure })
+                  }
                 >
                   {d.prizes.checkFailed}
                 </Button>

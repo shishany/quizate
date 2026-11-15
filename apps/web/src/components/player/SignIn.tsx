@@ -261,8 +261,10 @@ function Register() {
     if (ageCheck && !ageCheck.ok) return setError(fill(d.signin.underMinAge, { n: MIN_AGE }));
     {
       if (youth) {
-        if (!/^5\d{8}$/.test(guardian) || guardian === phone) return setError(d.signin.guardianInvalid);
-        if (guardianSent && guardianCode && guardianCode !== SAMPLE_CODE) return setError(d.signin.codeInvalid);
+        if (!/^5\d{8}$/.test(guardian) || guardian === phone)
+          return setError(d.signin.guardianInvalid);
+        if (guardianSent && guardianCode && guardianCode !== SAMPLE_CODE)
+          return setError(d.signin.codeInvalid);
       }
     }
     next();
@@ -272,7 +274,9 @@ function Register() {
     if (!consents.terms || !consents.privacy) return setError(d.signin.consentRequired);
     const at = now.toISOString();
     const granted = youth && guardianSent && guardianCode === SAMPLE_CODE;
-    const guardianConsent = granted ? { at, guardianPhoneHash: await sha256Hex(`+966${guardian}`) } : null;
+    const guardianConsent = granted
+      ? { at, guardianPhoneHash: await sha256Hex(`+966${guardian}`) }
+      : null;
     const player: Player = {
       id: 'me',
       name: name.trim(),
@@ -443,7 +447,11 @@ function Register() {
               ) : (
                 <Button
                   variant="secondary"
-                  onClick={() => (/^5\d{8}$/.test(guardian) ? setGuardianSent(true) : setError(d.signin.guardianInvalid))}
+                  onClick={() =>
+                    /^5\d{8}$/.test(guardian)
+                      ? setGuardianSent(true)
+                      : setError(d.signin.guardianInvalid)
+                  }
                 >
                   {d.signin.guardianSend}
                 </Button>

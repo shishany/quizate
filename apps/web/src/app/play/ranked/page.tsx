@@ -86,11 +86,12 @@ export default function RankedPage() {
   // FR-04: when configured, ranked play needs a Nafath-verified identity and a verified IBAN first.
   const needsVerification =
     state.ibanRequiredAt === 'ranked' && !(player?.identityVerifiedAt && player.iban);
-  const allowed = player && !canPlay(player)
-    ? ({ ok: false, reason: 'GUARDIAN' } as const)
-    : needsVerification
-      ? ({ ok: false, reason: 'VERIFY' } as const)
-      : limits;
+  const allowed =
+    player && !canPlay(player)
+      ? ({ ok: false, reason: 'GUARDIAN' } as const)
+      : needsVerification
+        ? ({ ok: false, reason: 'VERIFY' } as const)
+        : limits;
 
   useEffect(() => {
     if (phase.kind !== 'search' && phase.kind !== 'found') return;
@@ -123,9 +124,20 @@ export default function RankedPage() {
     } else if (isOn('ghost_opponent') && ghostDue(waited, cfg)) {
       // CR v3 section 7: replay a stored real match of similar rating. The sample version has no stored matches, so
       // the closest-rated sample player's play is generated; the match server replays real recordings.
-      const recordings = SAMPLE_PLAYERS.map((p) => ({ id: p.id, rating: toMonthlyScale(p.rating, cfg), p }));
+      const recordings = SAMPLE_PLAYERS.map((p) => ({
+        id: p.id,
+        rating: toMonthlyScale(p.rating, cfg),
+        p,
+      }));
       const ghost = pickGhost(recordings, player.rating);
-      if (ghost) setPhase({ kind: 'found', opponent: ghost.p, band: 'saudi', foundAt: Date.now(), ghost: true });
+      if (ghost)
+        setPhase({
+          kind: 'found',
+          opponent: ghost.p,
+          band: 'saudi',
+          foundAt: Date.now(),
+          ghost: true,
+        });
     }
   }, [tick, phase, player, cfg]);
 
@@ -283,10 +295,10 @@ export default function RankedPage() {
           {allowed.reason === 'GUARDIAN'
             ? d.home.guardianPending
             : allowed.reason === 'VERIFY'
-            ? d.home.ibanNeeded
-            : allowed.reason === 'DAILY_LIMIT'
-              ? d.home.dailyLimit
-              : fill(d.home.abandonBlock, { time: date(allowed.resetsAt, true) })}
+              ? d.home.ibanNeeded
+              : allowed.reason === 'DAILY_LIMIT'
+                ? d.home.dailyLimit
+                : fill(d.home.abandonBlock, { time: date(allowed.resetsAt, true) })}
         </Notice>
       )}
       {problem && <Notice tone="warn">{problem}</Notice>}
@@ -304,8 +316,9 @@ export default function RankedPage() {
                     type="button"
                     aria-pressed={category === c.id}
                     disabled={
-                      questionsInCategory(state.questions, c.id).filter((q) => q.status === 'published').length <
-                      cfg.questionsPerMatch
+                      questionsInCategory(state.questions, c.id).filter(
+                        (q) => q.status === 'published',
+                      ).length < cfg.questionsPerMatch
                     }
                     onClick={() => setCategory(c.id)}
                     className={`rounded-xl border px-2 py-2 text-sm font-semibold ${category === c.id ? 'border-primary bg-primary text-white' : 'border-line bg-card text-ink hover:bg-bg'} disabled:cursor-not-allowed disabled:opacity-40`}
@@ -385,10 +398,10 @@ export default function RankedPage() {
                 : s.maxKm === null && !s.sameCity && s.ratingBand !== null
                   ? fill(d.mm.stepRating, { band: num(s.ratingBand) })
                   : s.maxKm !== null
-                  ? fill(d.mm.stepRadius, { km: num(s.maxKm), band: num(s.ratingBand ?? 0) })
-                  : s.sameCity
-                    ? d.mm.stepCity
-                    : d.mm.stepNation;
+                    ? fill(d.mm.stepRadius, { km: num(s.maxKm), band: num(s.ratingBand ?? 0) })
+                    : s.sameCity
+                      ? d.mm.stepCity
+                      : d.mm.stepNation;
               const state_ = i < stepIndex ? 'past' : i === stepIndex ? 'now' : 'next';
               return (
                 <li

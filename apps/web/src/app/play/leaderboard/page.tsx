@@ -73,7 +73,9 @@ export default function LeaderboardPage() {
                 </div>
               </div>
               <span className="tabular text-end font-bold">
-                {tab === 'monthly' ? num(r.rating) : num(tab === 'allTime' ? r.allTime : r.points, 1)}
+                {tab === 'monthly'
+                  ? num(r.rating)
+                  : num(tab === 'allTime' ? r.allTime : r.points, 1)}
                 <span className="ms-1 text-xs font-normal text-muted">
                   {tab === 'monthly' ? d.lb.rating : d.common.pts}
                 </span>

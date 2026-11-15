@@ -46,7 +46,12 @@ describe('scoring', () => {
     expect(matchScore([ans(true, 4000)], cfg)).toBe(8);
     expect(matchScore([ans(true, 9900)], cfg)).toBe(5);
     expect(matchScore([ans(false, 1000), ans(true, null)], cfg)).toBe(0);
-    expect(matchScore(Array.from({ length: 10 }, () => ans(true, 500)), cfg)).toBe(100);
+    expect(
+      matchScore(
+        Array.from({ length: 10 }, () => ans(true, 500)),
+        cfg,
+      ),
+    ).toBe(100);
     expect(averageLatencyMs([ans(true, 1000), ans(false, 3000), ans(false, null)])).toBe(2000);
   });
 
@@ -98,7 +103,11 @@ describe('monthly ranking', () => {
   });
 
   it('CR v3 s6: eligible with at least 60 completed matches; ghost matches do not count; no opponent rule', () => {
-    const sixty = Array.from({ length: 60 }, (_, i) => ({ ...result(i % 28), matchId: `m${i}`, opponentId: 'o1' }));
+    const sixty = Array.from({ length: 60 }, (_, i) => ({
+      ...result(i % 28),
+      matchId: `m${i}`,
+      opponentId: 'o1',
+    }));
     expect(standingFor('p', sixty, '2026-10', cfg).eligible).toBe(true);
     expect(standingFor('p', sixty.slice(0, 59), '2026-10', cfg).eligible).toBe(false);
     const withGhost = sixty.map((r, i) => (i === 0 ? { ...r, ghost: true } : r));
@@ -112,7 +121,11 @@ describe('monthly ranking', () => {
     const ghost = [{ ...result(1), ghost: true }];
     expect(monthlyRating(ghost, '2026-10', cfg)).toEqual({ rating: 1000, history: [] });
     expect(monthlyRating(ghost, '2026-10', cfg, true).rating).toBe(1016);
-    expect(standingFor('p', ghost, '2026-10', cfg)).toMatchObject({ points: 0, counted: 0, qualifyingMatches: 0 });
+    expect(standingFor('p', ghost, '2026-10', cfg)).toMatchObject({
+      points: 0,
+      counted: 0,
+      qualifyingMatches: 0,
+    });
     expect(monthlyRating([result(1)], '2026-11', cfg).rating).toBe(1000);
   });
 

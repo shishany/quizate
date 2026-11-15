@@ -116,18 +116,20 @@ export function LangToggle({ className = '' }: { className?: string }) {
       aria-label={d.common.language}
       className={`inline-flex rounded-full border border-line bg-white p-0.5 ${className}`}
     >
-      {(Object.keys(LANGUAGE_NAMES) as Locale[]).filter((l) => l !== 'ur' || isOn('locale_ur')).map((l) => (
-        <button
-          key={l}
-          type="button"
-          lang={l}
-          aria-pressed={state.locale === l}
-          onClick={() => dispatch({ type: 'locale', locale: l })}
-          className={`rounded-full px-2.5 py-0.5 text-xs font-semibold leading-6 ${state.locale === l ? 'bg-navy text-white' : 'text-muted hover:text-ink'}`}
-        >
-          {l === 'en' ? 'EN' : LANGUAGE_NAMES[l]}
-        </button>
-      ))}
+      {(Object.keys(LANGUAGE_NAMES) as Locale[])
+        .filter((l) => l !== 'ur' || isOn('locale_ur'))
+        .map((l) => (
+          <button
+            key={l}
+            type="button"
+            lang={l}
+            aria-pressed={state.locale === l}
+            onClick={() => dispatch({ type: 'locale', locale: l })}
+            className={`rounded-full px-2.5 py-0.5 text-xs font-semibold leading-6 ${state.locale === l ? 'bg-navy text-white' : 'text-muted hover:text-ink'}`}
+          >
+            {l === 'en' ? 'EN' : LANGUAGE_NAMES[l]}
+          </button>
+        ))}
     </div>
   );
 }

@@ -56,7 +56,9 @@ export function monthlyRating(
   let rating = cfg.rating.start;
   const history: RatingStep[] = [];
   for (const r of results
-    .filter((x) => riyadhMonthKey(x.at) === month && !x.friend && (!x.ghost || ghostCountsForRating))
+    .filter(
+      (x) => riyadhMonthKey(x.at) === month && !x.friend && (!x.ghost || ghostCountsForRating),
+    )
     .sort((a, b) => a.at.localeCompare(b.at))) {
     const after = updateRatings(rating, r.opponentRating ?? cfg.rating.start, r.outcome, cfg).a;
     history.push({ matchId: r.matchId, at: r.at, before: rating, after });

@@ -12,7 +12,10 @@ export function prizePoolHalalas(table: readonly number[]): number {
 }
 
 /** Sabbaq CR v3 section 9: monthly pool = min(table total, sponsor funding for the month), in halalas. */
-export function monthlyPoolHalalas(table: readonly number[], sponsorFundingHalalas: number): number {
+export function monthlyPoolHalalas(
+  table: readonly number[],
+  sponsorFundingHalalas: number,
+): number {
   return Math.max(0, Math.min(prizePoolHalalas(table), Math.trunc(sponsorFundingHalalas)));
 }
 
@@ -102,7 +105,8 @@ export function payoutQueue(
     places.push({
       place,
       playerId: c.playerId,
-      status: check?.result === 'passed' ? (check.paid ? 'paid' : 'cash_eligible') : 'id_check_pending',
+      status:
+        check?.result === 'passed' ? (check.paid ? 'paid' : 'cash_eligible') : 'id_check_pending',
       amountHalalas: prizes[place - 1] ?? 0,
     });
   }

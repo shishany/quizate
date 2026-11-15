@@ -7,7 +7,8 @@
 import type { GameConfig } from './config.js';
 import type { Rng } from './rng.js';
 
-export const ghostDue = (waitSeconds: number, cfg: GameConfig): boolean => waitSeconds >= cfg.ghostAfterSeconds;
+export const ghostDue = (waitSeconds: number, cfg: GameConfig): boolean =>
+  waitSeconds >= cfg.ghostAfterSeconds;
 
 export interface Recording {
   id: string;

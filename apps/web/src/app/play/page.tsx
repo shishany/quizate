@@ -32,17 +32,20 @@ export default function Home() {
   const left = rankedLeftToday(history, now, cfg);
   // Youth (13-17) qualify for the youth award at 30 matches; adults for prizes at 60.
   const need =
-    state.player?.ageGroup === 'youth' ? cfg.eligibility.youthMinMatches : cfg.eligibility.minMatches;
+    state.player?.ageGroup === 'youth'
+      ? cfg.eligibility.youthMinMatches
+      : cfg.eligibility.minMatches;
   const tier = ENG.ladder.tiers[e.ladder.tierIndex];
-  const blocked = state.player && !canPlay(state.player)
-    ? d.home.guardianPending
-    : needsIban
-    ? d.home.ibanNeeded
-    : !limits.ok
-      ? limits.reason === 'DAILY_LIMIT'
-        ? d.home.dailyLimit
-        : fill(d.home.abandonBlock, { time: date(limits.resetsAt, true) })
-      : null;
+  const blocked =
+    state.player && !canPlay(state.player)
+      ? d.home.guardianPending
+      : needsIban
+        ? d.home.ibanNeeded
+        : !limits.ok
+          ? limits.reason === 'DAILY_LIMIT'
+            ? d.home.dailyLimit
+            : fill(d.home.abandonBlock, { time: date(limits.resetsAt, true) })
+          : null;
 
   return (
     <div className="space-y-4">
@@ -69,12 +72,14 @@ export default function Home() {
       <Card
         title={d.home.monthTitle}
         action={
-          isOn('ladder') && <Link
-            href="/play/ladder"
-            className="rounded-full bg-gold/15 px-3 py-1 text-xs font-bold text-gold-ink hover:bg-gold/25"
-          >
-            {tier ? pick(tier.name) : ''} {e.ladder.division ? ROMAN[e.ladder.division] : ''}
-          </Link>
+          isOn('ladder') && (
+            <Link
+              href="/play/ladder"
+              className="rounded-full bg-gold/15 px-3 py-1 text-xs font-bold text-gold-ink hover:bg-gold/25"
+            >
+              {tier ? pick(tier.name) : ''} {e.ladder.division ? ROMAN[e.ladder.division] : ''}
+            </Link>
+          )
         }
       >
         <div className="grid grid-cols-2 gap-2">
@@ -109,8 +114,7 @@ export default function Home() {
                 <div className="mb-1 flex justify-between">
                   <span>{d.home.counted}</span>
                   <span className="tabular text-muted">
-                    {num(Math.min(me?.qualifyingMatches ?? 0, need))} /{' '}
-                    {num(need)}
+                    {num(Math.min(me?.qualifyingMatches ?? 0, need))} / {num(need)}
                   </span>
                 </div>
                 <Progress
@@ -121,7 +125,7 @@ export default function Home() {
                 />
               </div>
               {cfg.eligibility.minOpponents > 0 && (
-              <div>
+                <div>
                   <div className="mb-1 flex justify-between">
                     <span>{d.home.opponents}</span>
                     <span className="tabular text-muted">
@@ -153,19 +157,23 @@ export default function Home() {
         blocked={blocked}
       />
       {isOn('mirror_challenge') && <MirrorCard />}
-      {isOn('practice_bot') && <ModeCard
-        title={d.home.practiceTitle}
-        body={d.home.practiceBody}
-        href="/play/practice"
-        accent="ok"
-      />}
-      {isOn('speed_round') && <ModeCard
-        title={d.home.speedTitle}
-        body={fill(d.home.speedBody, { s: num(cfg.speedRound.seconds) })}
-        meta={state.speedBest ? fill(d.home.speedBest, { n: num(state.speedBest) }) : undefined}
-        href="/play/speed"
-        accent="gold"
-      />}
+      {isOn('practice_bot') && (
+        <ModeCard
+          title={d.home.practiceTitle}
+          body={d.home.practiceBody}
+          href="/play/practice"
+          accent="ok"
+        />
+      )}
+      {isOn('speed_round') && (
+        <ModeCard
+          title={d.home.speedTitle}
+          body={fill(d.home.speedBody, { s: num(cfg.speedRound.seconds) })}
+          meta={state.speedBest ? fill(d.home.speedBest, { n: num(state.speedBest) }) : undefined}
+          href="/play/speed"
+          accent="gold"
+        />
+      )}
       {isOn('missions') && <Missions />}
       <QuestionOfDay />
     </div>

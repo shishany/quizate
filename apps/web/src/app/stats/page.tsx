@@ -17,7 +17,9 @@ export default function StatsPage() {
   const today = riyadhDayKey(now);
   const { rows } = useBoard(now);
   const sample = sampleMonthResults(now, state.config);
-  const sampleToday = [...sample.values()].flat().filter((r) => riyadhDayKey(r.at) === today).length;
+  const sampleToday = [...sample.values()]
+    .flat()
+    .filter((r) => riyadhDayKey(r.at) === today).length;
   const mineToday = state.matches.filter((m) => riyadhDayKey(m.at) === today).length;
   const players = SAMPLE_PLAYERS.length + (state.player ? 1 : 0);
 

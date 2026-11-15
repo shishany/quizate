@@ -18,7 +18,11 @@ export default function SponsorsPage() {
   const [price, setPrice] = useState('');
   const [priceReason, setPriceReason] = useState('');
   const now = new Date();
-  const campaigns = sampleCampaigns(now, state.campaignPrices, state.config.sponsor.defaultPricePer1000Halalas);
+  const campaigns = sampleCampaigns(
+    now,
+    state.campaignPrices,
+    state.config.sponsor.defaultPricePer1000Halalas,
+  );
   const [selected, setSelected] = useState(campaigns[0]?.id ?? '');
   const campaign = campaigns.find((c) => c.id === selected) ?? campaigns[0];
   if (!campaign) return null;
@@ -53,7 +57,13 @@ export default function SponsorsPage() {
         <table className="w-full min-w-[560px] text-sm">
           <thead className="text-xs text-muted">
             <tr>
-              {[d.sponsors.sponsor, d.sponsors.dates, d.sponsors.quota, d.sponsors.price, d.sponsors.status].map((h) => (
+              {[
+                d.sponsors.sponsor,
+                d.sponsors.dates,
+                d.sponsors.quota,
+                d.sponsors.price,
+                d.sponsors.status,
+              ].map((h) => (
                 <th key={h} className="py-2 text-start font-medium">
                   {h}
                 </th>
@@ -74,9 +84,15 @@ export default function SponsorsPage() {
                     {date(c.startsAt)} – {date(c.endsAt)}
                   </td>
                   <td className="py-2">{num(c.viewQuota)}</td>
-                  <td className="py-2">{fill(d.sponsors.priceValue, { sar: num(c.pricePer1000Halalas / 100, 2) })}</td>
                   <td className="py-2">
-                    {campaignLive(c, now) ? <Badge tone="ok">{d.sponsors.live}</Badge> : <Badge>{d.sponsors.ended}</Badge>}
+                    {fill(d.sponsors.priceValue, { sar: num(c.pricePer1000Halalas / 100, 2) })}
+                  </td>
+                  <td className="py-2">
+                    {campaignLive(c, now) ? (
+                      <Badge tone="ok">{d.sponsors.live}</Badge>
+                    ) : (
+                      <Badge>{d.sponsors.ended}</Badge>
+                    )}
                   </td>
                 </tr>
               );
@@ -148,14 +164,22 @@ export default function SponsorsPage() {
           <div className="rounded-xl bg-card p-2">
             <div className="text-xs text-muted">{d.sponsors.correctPct}</div>
             <div className="tabular font-bold">
-              {total.answers ? `${num(Math.round((total.correct / total.answers) * 1000) / 10, 1)}%` : '—'}
+              {total.answers
+                ? `${num(Math.round((total.correct / total.answers) * 1000) / 10, 1)}%`
+                : '—'}
             </div>
           </div>
         </div>
         <table className="w-full min-w-[420px] text-sm">
           <thead className="text-xs text-muted">
             <tr>
-              {[d.sponsors.day, d.sponsors.impressions, d.sponsors.billable, d.sponsors.answers, d.sponsors.correctPct].map((h) => (
+              {[
+                d.sponsors.day,
+                d.sponsors.impressions,
+                d.sponsors.billable,
+                d.sponsors.answers,
+                d.sponsors.correctPct,
+              ].map((h) => (
                 <th key={h} className="py-2 text-start font-medium">
                   {h}
                 </th>

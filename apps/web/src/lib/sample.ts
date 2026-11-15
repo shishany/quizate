@@ -186,7 +186,10 @@ export function sampleMonthResults(now: Date, cfg: GameConfig): Map<string, Rank
           score,
           oppScore,
           totalAnswerMs(mine, cfg),
-          totalAnswerMs(theirs.map((a) => ({ ...a, option: 0 })), cfg),
+          totalAnswerMs(
+            theirs.map((a) => ({ ...a, option: 0 })),
+            cfg,
+          ),
         ),
         score,
         correct: correctCount(mine),

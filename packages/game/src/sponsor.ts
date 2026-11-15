@@ -62,7 +62,13 @@ export function matchSponsorEvents(
       billable: shownMs >= cfg.sponsor.billableViewMs,
     });
     if (a && a.latencyMs !== null) {
-      out.push({ type: 'answer', campaignId: q.campaignId, questionId: q.id, at, correct: a.correct });
+      out.push({
+        type: 'answer',
+        campaignId: q.campaignId,
+        questionId: q.id,
+        at,
+        correct: a.correct,
+      });
     }
   });
   return out;
@@ -90,11 +96,24 @@ export function campaignReport(
   campaignId: string,
 ): { total: Omit<ReportRow, 'day'>; byDay: ReportRow[] } {
   const days = new Map<string, ReportRow>();
-  const total = { views: 0, billableViews: 0, answers: 0, correct: 0, correctPct: null as number | null };
+  const total = {
+    views: 0,
+    billableViews: 0,
+    answers: 0,
+    correct: 0,
+    correctPct: null as number | null,
+  };
   for (const e of events) {
     if (e.campaignId !== campaignId) continue;
     const day = riyadhDayKey(e.at);
-    const row = days.get(day) ?? { day, views: 0, billableViews: 0, answers: 0, correct: 0, correctPct: null };
+    const row = days.get(day) ?? {
+      day,
+      views: 0,
+      billableViews: 0,
+      answers: 0,
+      correct: 0,
+      correctPct: null,
+    };
     if (e.type === 'view') {
       row.views++;
       total.views++;
@@ -122,7 +141,9 @@ export function campaignReport(
 export function reportCsv(rows: readonly ReportRow[]): string {
   const lines = ['day,views,billable_views,answers,correct,correct_pct'];
   for (const r of rows)
-    lines.push([r.day, r.views, r.billableViews, r.answers, r.correct, r.correctPct ?? ''].join(','));
+    lines.push(
+      [r.day, r.views, r.billableViews, r.answers, r.correct, r.correctPct ?? ''].join(','),
+    );
   return `${lines.join('\n')}\n`;
 }
 
@@ -140,7 +161,9 @@ export function sponsorFundingForMonth(
     const views = events
       .filter((e) => e.type === 'view' && e.billable && e.campaignId === c.id)
       .sort((a, b) => a.at.localeCompare(b.at));
-    const billable = views.slice(0, c.viewQuota).filter((e) => riyadhMonthKey(e.at) === month).length;
+    const billable = views
+      .slice(0, c.viewQuota)
+      .filter((e) => riyadhMonthKey(e.at) === month).length;
     total += Math.floor((billable * c.pricePer1000Halalas) / 1000);
   }
   return total;

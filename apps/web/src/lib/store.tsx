@@ -179,7 +179,9 @@ export function questionActionAllowed(
       return editor && q.status === 'draft';
     case 'approved':
     case 'rejected':
-      return reviewer && (q.status === 'in_review' || q.status === 'needs_review') && q.authorId !== me;
+      return (
+        reviewer && (q.status === 'in_review' || q.status === 'needs_review') && q.authorId !== me
+      );
     case 'retired':
     case 'voided':
       return reviewer && q.status === 'published';
@@ -194,7 +196,9 @@ export function reducer(state: DemoState, action: Action): DemoState {
       return action.state;
     case 'locale':
       // Urdu is hidden in the MVP (flag locale_ur).
-      return action.locale === 'ur' && !isOn('locale_ur') ? state : { ...state, locale: action.locale };
+      return action.locale === 'ur' && !isOn('locale_ur')
+        ? state
+        : { ...state, locale: action.locale };
     case 'reset':
       return { ...initialState(), locale: state.locale };
     case 'signIn':
@@ -204,7 +208,16 @@ export function reducer(state: DemoState, action: Action): DemoState {
     case 'restoreAccount':
       return state.savedAccount ? { ...state, player: state.savedAccount } : state;
     case 'matchFinished': {
-      const { summary, ranked, seenIds = [], abandoned, flag, sponsored, sponsorEvents = [], xp } = action;
+      const {
+        summary,
+        ranked,
+        seenIds = [],
+        abandoned,
+        flag,
+        sponsored,
+        sponsorEvents = [],
+        xp,
+      } = action;
       const seen = { ...state.seen };
       for (const id of seenIds) seen[id] = summary.at;
       const player = state.player ? { ...state.player, rating: summary.ratingAfter } : null;
@@ -239,7 +252,9 @@ export function reducer(state: DemoState, action: Action): DemoState {
         abandons: abandoned ? [...state.abandons, summary.at] : state.abandons,
         fraud,
         sponsorTally: tally,
-        sponsorEvents: sponsorEvents.length ? [...state.sponsorEvents, ...sponsorEvents] : state.sponsorEvents,
+        sponsorEvents: sponsorEvents.length
+          ? [...state.sponsorEvents, ...sponsorEvents]
+          : state.sponsorEvents,
         activeRanked: state.activeRanked?.id === summary.id ? null : state.activeRanked,
         xp: xp ? [...state.xp, xp] : state.xp,
         activeDays: summary.forfeit
@@ -528,7 +543,8 @@ export function reducer(state: DemoState, action: Action): DemoState {
       };
     }
     case 'payoutCheck': {
-      if (!state.adminRole || !PRIZE_ROLES.includes(state.adminRole) || !action.reason.trim()) return state;
+      if (!state.adminRole || !PRIZE_ROLES.includes(state.adminRole) || !action.reason.trim())
+        return state;
       const key = `${action.month}:${action.playerId}`;
       if (state.payouts[key]) return state; // one check per player and month; a failed place has moved on
       const rec: PayoutRecord = {
@@ -552,26 +568,37 @@ export function reducer(state: DemoState, action: Action): DemoState {
         payouts: { ...state.payouts, [key]: rec },
         audit:
           action.result === 'failed'
-            ? audit({ ...state, audit: logged }, 'payout.place_reassigned', key, 'place passes to the next eligible player')
+            ? audit(
+                { ...state, audit: logged },
+                'payout.place_reassigned',
+                key,
+                'place passes to the next eligible player',
+              )
             : logged,
       };
     }
     case 'payoutPaid': {
-      if (!state.adminRole || !PRIZE_ROLES.includes(state.adminRole) || !action.reason.trim()) return state;
+      if (!state.adminRole || !PRIZE_ROLES.includes(state.adminRole) || !action.reason.trim())
+        return state;
       const key = `${action.month}:${action.playerId}`;
       const rec = state.payouts[key];
       if (rec?.result !== 'passed' || rec.paid) return state;
       return {
         ...state,
         payouts: { ...state.payouts, [key]: { ...rec, paid: true } },
-        audit: audit(state, 'payout.paid', key, action.reason, { before: 'cash_eligible', after: 'paid' }),
+        audit: audit(state, 'payout.paid', key, action.reason, {
+          before: 'cash_eligible',
+          after: 'paid',
+        }),
       };
     }
     case 'campaignPrice': {
       const role = state.adminRole;
-      if (!role || !['super_admin', 'sponsor_manager'].includes(role) || !action.reason.trim()) return state;
+      if (!role || !['super_admin', 'sponsor_manager'].includes(role) || !action.reason.trim())
+        return state;
       if (!Number.isInteger(action.halalas) || action.halalas <= 0) return state;
-      const before = state.campaignPrices[action.campaignId] ?? state.config.sponsor.defaultPricePer1000Halalas;
+      const before =
+        state.campaignPrices[action.campaignId] ?? state.config.sponsor.defaultPricePer1000Halalas;
       return {
         ...state,
         campaignPrices: { ...state.campaignPrices, [action.campaignId]: action.halalas },
@@ -582,7 +609,8 @@ export function reducer(state: DemoState, action: Action): DemoState {
       };
     }
     case 'youthAward': {
-      if (!state.adminRole || !PRIZE_ROLES.includes(state.adminRole) || !action.award.trim()) return state;
+      if (!state.adminRole || !PRIZE_ROLES.includes(state.adminRole) || !action.award.trim())
+        return state;
       const at = new Date().toISOString();
       const entry: YouthAward = {
         id: `ya-${Date.now()}`,
@@ -595,7 +623,12 @@ export function reducer(state: DemoState, action: Action): DemoState {
       return {
         ...state,
         youthAwards: [entry, ...state.youthAwards],
-        audit: audit(state, 'youth_award.record', `${action.month}:${action.playerId}`, entry.award),
+        audit: audit(
+          state,
+          'youth_award.record',
+          `${action.month}:${action.playerId}`,
+          entry.award,
+        ),
       };
     }
     case 'fraud': {

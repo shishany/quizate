@@ -20,7 +20,12 @@ export type SignupAge =
   | { ok: false; reason: 'UNDER_MIN_AGE' }
   | { ok: true; ageGroup: AgeGroup; consentStatus: ConsentStatus };
 
-export function signupAge(birthDate: string, now: Date, min = AGE.min, adult = AGE.adult): SignupAge {
+export function signupAge(
+  birthDate: string,
+  now: Date,
+  min = AGE.min,
+  adult = AGE.adult,
+): SignupAge {
   const age = ageOn(birthDate, now);
   if (age < min) return { ok: false, reason: 'UNDER_MIN_AGE' };
   return age < adult
@@ -33,8 +38,12 @@ export const canPlay = (p: { ageGroup?: AgeGroup; consentStatus?: ConsentStatus 
   p.ageGroup !== 'youth' || p.consentStatus === 'granted';
 
 /** cash_eligible = age >= 18 AND id_verified (set by an admin at payout). */
-export const cashEligible = (birthDate: string, idVerified: boolean, now: Date, adult = AGE.adult): boolean =>
-  ageOn(birthDate, now) >= adult && idVerified === true;
+export const cashEligible = (
+  birthDate: string,
+  idVerified: boolean,
+  now: Date,
+  adult = AGE.adult,
+): boolean => ageOn(birthDate, now) >= adult && idVerified === true;
 
 export interface GuardianConsent {
   /** When the guardian confirmed the OTP. */

@@ -23,7 +23,8 @@ export function matchScore(answers: readonly AnswerRecord[], cfg: GameConfig): n
   return answers.reduce((sum, a) => sum + answerPoints(a, cfg), 0);
 }
 
-export const correctCount = (answers: readonly AnswerRecord[]): number => answers.filter((a) => a.correct).length;
+export const correctCount = (answers: readonly AnswerRecord[]): number =>
+  answers.filter((a) => a.correct).length;
 
 /** Total answer time; a timeout counts as the full question time. Used for the tie-break. */
 export function totalAnswerMs(answers: readonly AnswerRecord[], cfg: GameConfig): number {

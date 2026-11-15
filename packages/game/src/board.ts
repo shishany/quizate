@@ -32,7 +32,9 @@ export function boardBadges(
   for (const r of rows) {
     const prizeZone = r.eligible && r.cashEligible && prize < prizeSlots ? ++prize : null;
     const youthTop =
-      r.ageGroup === 'youth' && r.qualifyingMatches >= youthMinMatches && youth < youthSlots ? ++youth : null;
+      r.ageGroup === 'youth' && r.qualifyingMatches >= youthMinMatches && youth < youthSlots
+        ? ++youth
+        : null;
     out.set(r.playerId, { prizeZone, youthTop });
   }
   return out;

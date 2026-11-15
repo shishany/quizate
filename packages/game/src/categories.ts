@@ -25,6 +25,9 @@ export function inCategory(questionCategory: string, chosen: MatchCategoryId): b
   return !c || c.bank === null || c.bank.includes(questionCategory);
 }
 
-export function questionsInCategory<Q extends { category: string }>(bank: readonly Q[], chosen: MatchCategoryId): Q[] {
+export function questionsInCategory<Q extends { category: string }>(
+  bank: readonly Q[],
+  chosen: MatchCategoryId,
+): Q[] {
   return bank.filter((q) => inCategory(q.category, chosen));
 }

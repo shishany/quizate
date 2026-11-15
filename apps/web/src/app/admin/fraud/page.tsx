@@ -153,8 +153,8 @@ function CollusionAlerts() {
               <span className="font-semibold">
                 {name(a.pair[0])} · {name(a.pair[1])}
               </span>{' '}
-              · {num(a.matches)} {d.fraud.collusionMatches} · {d.fraud.collusionWins}: {name(a.dominant)} ·{' '}
-              {date(a.from, true)} – {date(a.to, true)}
+              · {num(a.matches)} {d.fraud.collusionMatches} · {d.fraud.collusionWins}:{' '}
+              {name(a.dominant)} · {date(a.from, true)} – {date(a.to, true)}
             </li>
           ))}
         </ul>

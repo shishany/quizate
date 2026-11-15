@@ -34,7 +34,10 @@ export default function Overview() {
         />
         <Stat
           label={d.overview.inReview}
-          value={num(state.questions.filter((q) => q.status === 'in_review' || q.status === 'needs_review').length)}
+          value={num(
+            state.questions.filter((q) => q.status === 'in_review' || q.status === 'needs_review')
+              .length,
+          )}
         />
         <Stat
           label={d.overview.openFlags}

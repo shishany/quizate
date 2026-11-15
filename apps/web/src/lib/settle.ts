@@ -68,21 +68,16 @@ export function settle(
   const points = counted && m.opponent.ghost !== true ? monthlyPoints(outcome, myScore, cfg) : 0;
   // Ghost matches change no rating and earn no points while ghost answers are generated (owner, 15 Nov 2026).
   const ghostCounts = m.opponent.ghost !== true || isOn('ghost_counts_for_rating');
-  const ratingAfter = ranked && ghostCounts
-    ? updateRatings(ratingBefore, opponentRating, outcome, cfg).a
-    : ratingBefore;
+  const ratingAfter =
+    ranked && ghostCounts
+      ? updateRatings(ratingBefore, opponentRating, outcome, cfg).a
+      : ratingBefore;
   const answered = m.mine.filter((a) => a.latencyMs !== null);
   // FR-30: XP for completed matches only; it never touches monthly points (architecture rule 10).
   const xp = m.forfeit
     ? null
     : ranked
-      ? xpGrant(
-          state,
-          'ranked',
-          rankedXp(correctCount(m.mine), outcome === 'win', ENG),
-          m.at,
-          m.id,
-        )
+      ? xpGrant(state, 'ranked', rankedXp(correctCount(m.mine), outcome === 'win', ENG), m.at, m.id)
       : xpGrant(state, 'practice', ENG.xp.practice, m.at, m.id);
 
   const summary: MatchSummary = {

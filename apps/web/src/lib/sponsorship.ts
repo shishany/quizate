@@ -10,10 +10,24 @@ import { sampleCampaignRows } from '@/data/sponsors';
 const pct = (c: number, a: number) => (a ? Math.round((c / a) * 1000) / 10 : null);
 
 /** CR v3 section 8: a campaign's report by day, sample totals plus the player's own events. */
-export function campaignRows(campaign: Campaign, events: readonly SponsorEvent[], now: Date): ReportRow[] {
+export function campaignRows(
+  campaign: Campaign,
+  events: readonly SponsorEvent[],
+  now: Date,
+): ReportRow[] {
   const days = new Map<string, ReportRow>();
-  for (const r of [...sampleCampaignRows(campaign, now), ...campaignReport(events, campaign.id).byDay]) {
-    const d = days.get(r.day) ?? { day: r.day, views: 0, billableViews: 0, answers: 0, correct: 0, correctPct: null };
+  for (const r of [
+    ...sampleCampaignRows(campaign, now),
+    ...campaignReport(events, campaign.id).byDay,
+  ]) {
+    const d = days.get(r.day) ?? {
+      day: r.day,
+      views: 0,
+      billableViews: 0,
+      answers: 0,
+      correct: 0,
+      correctPct: null,
+    };
     d.views += r.views;
     d.billableViews += r.billableViews;
     d.answers += r.answers;

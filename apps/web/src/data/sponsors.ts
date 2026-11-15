@@ -1,4 +1,11 @@
-import { DAY_MS, DEFAULT_CONFIG, riyadhDayKey, seededRng, type Campaign, type ReportRow } from '@quizate/game';
+import {
+  DAY_MS,
+  DEFAULT_CONFIG,
+  riyadhDayKey,
+  seededRng,
+  type Campaign,
+  type ReportRow,
+} from '@quizate/game';
 import type { BiText } from './questions';
 
 /**
@@ -72,12 +79,23 @@ export function sampleCampaigns(
 export function sampleCampaignRows(campaign: Campaign, now: Date): ReportRow[] {
   const rng = seededRng(campaign.id.length * 7919 + campaign.viewQuota);
   const rows: ReportRow[] = [];
-  for (let t = new Date(campaign.startsAt).getTime(); t < Math.min(now.getTime(), new Date(campaign.endsAt).getTime()); t += DAY_MS) {
+  for (
+    let t = new Date(campaign.startsAt).getTime();
+    t < Math.min(now.getTime(), new Date(campaign.endsAt).getTime());
+    t += DAY_MS
+  ) {
     const views = Math.round(6_000 + rng() * 6_000);
     const billableViews = Math.round(views * (0.82 + rng() * 0.1));
     const answers = Math.round(views * (0.9 + rng() * 0.08));
     const correct = Math.round(answers * (0.55 + rng() * 0.3));
-    rows.push({ day: riyadhDayKey(new Date(t)), views, billableViews, answers, correct, correctPct: null });
+    rows.push({
+      day: riyadhDayKey(new Date(t)),
+      views,
+      billableViews,
+      answers,
+      correct,
+      correctPct: null,
+    });
   }
   return rows;
 }

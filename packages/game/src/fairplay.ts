@@ -45,7 +45,9 @@ export function collusionAlerts(matches: readonly PairMatch[], cfg: GameConfig):
     for (let i = 0; i < sorted.length; i++) {
       const start = new Date(sorted[i]!.at).getTime();
       const inWindow = sorted.filter(
-        (m) => new Date(m.at).getTime() >= start && new Date(m.at).getTime() < start + windowHours * 3_600_000,
+        (m) =>
+          new Date(m.at).getTime() >= start &&
+          new Date(m.at).getTime() < start + windowHours * 3_600_000,
       );
       if (inWindow.length < minMatches) continue;
       const wins = new Map<string, number>();
