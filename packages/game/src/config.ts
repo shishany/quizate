@@ -52,6 +52,11 @@ export interface GameConfig {
    * in kind and entered by an admin per month: no cash fields, no amounts in configuration.
    */
   youthAwardSlots: number;
+  /**
+   * Owner decision 15 Nov 2026: a billable view is a sponsored question shown on screen for at least `billableViewMs`.
+   * Campaign price per 1,000 billable views is set per campaign in admin; `defaultPricePer1000Halalas` is the default.
+   */
+  sponsor: { billableViewMs: number; defaultPricePer1000Halalas: number };
 }
 
 export interface MatchmakingStep {
@@ -94,6 +99,7 @@ export const DEFAULT_CONFIG: GameConfig = {
   fairPlay: { minHumanMs: 800, maxFastAnswers: 2 },
   speedRound: { seconds: 60 },
   youthAwardSlots: 3,
+  sponsor: { billableViewMs: 3000, defaultPricePer1000Halalas: 4000 },
   prizeTableHalalas: [5000, 4000, 3000, 2000, 1000, 500, 400, 300, 200, 100].map((sar) => sar * 100),
   collusion: { minMatches: 3, windowHours: 7 * 24, oneSidedShare: 1 },
 };

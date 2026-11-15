@@ -30,7 +30,7 @@ import type {
 } from './types';
 
 export const STORAGE_KEY = 'quizate-demo-v1';
-export const STATE_VERSION = 6;
+export const STATE_VERSION = 7;
 
 /** The one verification code of the sample version, for every number and every admin role. No message is sent. */
 export const SAMPLE_CODE = '000000';
@@ -372,6 +372,7 @@ export function initialState(now = new Date()): DemoState {
     adminRole: null,
     sponsorTally: { impressions: 0, answers: 0, correct: 0 },
     sponsorEvents: [],
+    campaignPrices: {},
     activeRanked: null,
     savedAccount: null,
     xp: [],

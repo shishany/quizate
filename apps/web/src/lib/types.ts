@@ -238,6 +238,8 @@ export interface DemoState {
   ibanRequiredAt: 'signup' | 'ranked' | 'prize';
   /** Sponsored answers given by this player: city → counts. */
   sponsorTally: { impressions: number; answers: number; correct: number };
+  /** Price per 1,000 billable views per campaign, set in admin (halalas). Missing = configured default. */
+  campaignPrices: Record<string, number>;
   /** CR v3 section 8: append-only view/answer events (the events table). */
   sponsorEvents: SponsorEvent[];
 }

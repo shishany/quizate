@@ -511,6 +511,10 @@ export const en: Dictionary = {
     note: 'Public, read-only page with aggregated figures and no personal data.',
   },
   sponsors: {
+    billable: 'Billable views',
+    billableNote: 'A billable view = the question shown on screen for at least 3 seconds. Funding = billable views × the campaign price per 1,000 (default SAR 40).',
+    setPrice: 'Price per 1,000 (SAR)',
+    qualityNote: 'Answers and % correct are quality metrics only; they are not billed.',
     campaigns: 'Campaigns',
     quota: 'View quota',
     price: 'Price per 1,000 views',

@@ -1,4 +1,4 @@
-import { DAY_MS, riyadhDayKey, seededRng, type Campaign, type ReportRow } from '@quizate/game';
+import { DAY_MS, DEFAULT_CONFIG, riyadhDayKey, seededRng, type Campaign, type ReportRow } from '@quizate/game';
 import type { BiText } from './questions';
 
 /**
@@ -47,17 +47,21 @@ export const sponsorForCampaign = (campaignId: string | null) =>
   SAMPLE_SPONSORS.find((s) => s.campaignId === campaignId);
 
 /**
- * Sample campaigns (CR v3 section 8): each runs from 12 days before to 18 days after "now". Price is per 1,000 views
- * in halalas; 2,500 = SAR 25.
+ * Sample campaigns (CR v3 section 8): each runs from 12 days before to 18 days after "now". Price per 1,000 billable
+ * views is set per campaign in admin (`prices`, halalas); otherwise the configured default (SAR 40).
  */
-export function sampleCampaigns(now: Date): Campaign[] {
+export function sampleCampaigns(
+  now: Date,
+  prices: Readonly<Record<string, number>> = {},
+  defaultPrice = DEFAULT_CONFIG.sponsor.defaultPricePer1000Halalas,
+): Campaign[] {
   return SAMPLE_SPONSORS.map((s, i) => ({
     id: s.campaignId,
     sponsorId: s.id,
     startsAt: new Date(now.getTime() - (12 + i * 3) * DAY_MS).toISOString(),
     endsAt: new Date(now.getTime() + 18 * DAY_MS).toISOString(),
     viewQuota: 300_000,
-    pricePer1000Halalas: 2_500,
+    pricePer1000Halalas: prices[s.campaignId] ?? defaultPrice,
   }));
 }
 
@@ -70,9 +74,10 @@ export function sampleCampaignRows(campaign: Campaign, now: Date): ReportRow[] {
   const rows: ReportRow[] = [];
   for (let t = new Date(campaign.startsAt).getTime(); t < Math.min(now.getTime(), new Date(campaign.endsAt).getTime()); t += DAY_MS) {
     const views = Math.round(6_000 + rng() * 6_000);
+    const billableViews = Math.round(views * (0.82 + rng() * 0.1));
     const answers = Math.round(views * (0.9 + rng() * 0.08));
     const correct = Math.round(answers * (0.55 + rng() * 0.3));
-    rows.push({ day: riyadhDayKey(new Date(t)), views, answers, correct, correctPct: null });
+    rows.push({ day: riyadhDayKey(new Date(t)), views, billableViews, answers, correct, correctPct: null });
   }
   return rows;
 }

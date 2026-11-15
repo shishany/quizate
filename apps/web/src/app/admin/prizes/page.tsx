@@ -45,7 +45,12 @@ export default function PrizesPage() {
   const close = lastMonthClose(now);
   const { month, rows } = useBoard(close);
   const table = state.config.prizeTableHalalas;
-  const funding = fundingForMonth(sampleCampaigns(close), state.sponsorEvents, month, close);
+  const funding = fundingForMonth(
+    sampleCampaigns(close, state.campaignPrices, state.config.sponsor.defaultPricePer1000Halalas),
+    state.sponsorEvents,
+    month,
+    close,
+  );
   const pool = monthlyPoolHalalas(table, funding);
   const scaled = scaledPrizeTable(table, pool);
   const checks = new Map(

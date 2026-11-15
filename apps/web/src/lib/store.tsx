@@ -88,7 +88,8 @@ export type Action =
       reason: string;
     }
   | { type: 'payoutPaid'; month: string; playerId: string; reason: string }
-  | { type: 'youthAward'; month: string; playerId: string; award: string };
+  | { type: 'youthAward'; month: string; playerId: string; award: string }
+  | { type: 'campaignPrice'; campaignId: string; halalas: number; reason: string };
 
 /** Editable configuration keys (FR-27), each a number at a path in GameConfig. */
 export type ConfigKey =
@@ -564,6 +565,20 @@ export function reducer(state: DemoState, action: Action): DemoState {
         ...state,
         payouts: { ...state.payouts, [key]: { ...rec, paid: true } },
         audit: audit(state, 'payout.paid', key, action.reason, { before: 'cash_eligible', after: 'paid' }),
+      };
+    }
+    case 'campaignPrice': {
+      const role = state.adminRole;
+      if (!role || !['super_admin', 'sponsor_manager'].includes(role) || !action.reason.trim()) return state;
+      if (!Number.isInteger(action.halalas) || action.halalas <= 0) return state;
+      const before = state.campaignPrices[action.campaignId] ?? state.config.sponsor.defaultPricePer1000Halalas;
+      return {
+        ...state,
+        campaignPrices: { ...state.campaignPrices, [action.campaignId]: action.halalas },
+        audit: audit(state, 'campaign.price', action.campaignId, action.reason, {
+          before: String(before),
+          after: String(action.halalas),
+        }),
       };
     }
     case 'youthAward': {

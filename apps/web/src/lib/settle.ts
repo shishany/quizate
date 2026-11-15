@@ -138,7 +138,7 @@ export function settle(
           }
         : undefined,
     // CR v3 section 8: one batch of view/answer events per match, appended to the events table.
-    sponsorEvents: matchSponsorEvents(m.questions, m.mine, m.at),
+    sponsorEvents: matchSponsorEvents(m.questions, m.mine, m.at, cfg),
     sponsored: sponsoredIdx.length
       ? {
           shown: sponsoredIdx.length,
