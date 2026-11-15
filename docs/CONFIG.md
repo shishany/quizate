@@ -84,7 +84,8 @@ These defaults replace the BRD values in the rows above where they differ. All l
 | `eligibility` | 60 matches, 0 opponents | Section 6: >= 60 completed non-ghost matches; distinct-opponent rule removed |
 | `matchmaking` | ±100, +100 every 5 s | Section 7: rating only (`nearby_matching` off) |
 | `ghostAfterSeconds` | 20 | Section 7: then a ghost opponent ("منافس مسجّل") |
-| `youthAwardSlots` | 3 | Section 6/9: top youth players marked for the in-kind award (count not given; our default) |
+| `youthAwardSlots` | 3 | Owner decision 15 Nov 2026: top 3 youth (13-17) per month; in-kind award entered by an admin, no amounts |
+| `eligibility.youthMinMatches` | 30 | Owner decision 15 Nov 2026: youth award qualification (adults stay at 60) |
 | `prizeTableHalalas` | 5,000 … 100 SAR (16,500) | Section 9; pool = min(16,500, sponsor funding), ranks scaled, rounded down to SAR 10 |
 | `collusion` | 3 matches, 7 days, same winner every time | Owner decision 15 Nov 2026; BR-07 (1 match per pair per 24 h) stays. Friend matches count for nothing monthly |
 | Minimum age | 13 (`AGE` in `age.ts`) | Section 3 |

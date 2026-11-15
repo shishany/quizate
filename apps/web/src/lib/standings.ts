@@ -65,9 +65,16 @@ export function useBoard(now = new Date()): {
       };
     });
     const badges = boardBadges(
-      base.map((b) => ({ playerId: b.r.playerId, eligible: b.r.eligible, cashEligible: b.cashEligible, ageGroup: b.ageGroup })),
+      base.map((b) => ({
+        playerId: b.r.playerId,
+        eligible: b.r.eligible,
+        cashEligible: b.cashEligible,
+        ageGroup: b.ageGroup,
+        qualifyingMatches: b.r.qualifyingMatches,
+      })),
       config.prizeTableHalalas.length,
       config.youthAwardSlots,
+      config.eligibility.youthMinMatches,
     );
     const rows: BoardRow[] = base.map(({ r, sp, ageGroup, birthDate, cashEligible: cash }) => {
       return {

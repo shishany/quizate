@@ -30,6 +30,9 @@ export default function Home() {
   const needsIban =
     state.ibanRequiredAt === 'ranked' && !(state.player?.identityVerifiedAt && state.player.iban);
   const left = rankedLeftToday(history, now, cfg);
+  // Youth (13-17) qualify for the youth award at 30 matches; adults for prizes at 60.
+  const need =
+    state.player?.ageGroup === 'youth' ? cfg.eligibility.youthMinMatches : cfg.eligibility.minMatches;
   const tier = ENG.ladder.tiers[e.ladder.tierIndex];
   const blocked = state.player && !canPlay(state.player)
     ? d.home.guardianPending
@@ -98,7 +101,7 @@ export default function Home() {
             <>
               <p className="text-xs text-muted">
                 {fill(d.home.notEligible, {
-                  m: num(cfg.eligibility.minMatches),
+                  m: num(need),
                   o: num(cfg.eligibility.minOpponents),
                 })}
               </p>
@@ -106,13 +109,13 @@ export default function Home() {
                 <div className="mb-1 flex justify-between">
                   <span>{d.home.counted}</span>
                   <span className="tabular text-muted">
-                    {num(Math.min(me?.qualifyingMatches ?? 0, cfg.eligibility.minMatches))} /{' '}
-                    {num(cfg.eligibility.minMatches)}
+                    {num(Math.min(me?.qualifyingMatches ?? 0, need))} /{' '}
+                    {num(need)}
                   </span>
                 </div>
                 <Progress
                   value={me?.qualifyingMatches ?? 0}
-                  max={cfg.eligibility.minMatches}
+                  max={need}
                   tone="gold"
                   label={d.home.counted}
                 />

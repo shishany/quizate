@@ -21,7 +21,7 @@ export interface GameConfig {
    * Sabbaq CR v3 section 6: prize qualification is >= 60 completed (non-ghost) matches in the month. The old rule of
    * 10 distinct opponents is removed (0 = off).
    */
-  eligibility: { minMatches: number; minOpponents: number };
+  eligibility: { minMatches: number; minOpponents: number; youthMinMatches: number };
   /** Sabbaq CR v3 section 6: monthly Elo, everyone starts each Riyadh month at 1,000, K = 32. */
   rating: { start: number; k: number };
   /** BR-11, BR-12 */ abandon: {
@@ -46,7 +46,11 @@ export interface GameConfig {
    * fair-play page. The 1-match-per-pair-per-24h limit (BR-07) stays.
    */
   collusion: { minMatches: number; windowHours: number; oneSidedShare: number };
-  /** Sabbaq CR v3 section 6: how many top youth players get the youth badge (in-kind award). Not given; default 3. */
+  /**
+   * Owner decision 15 Nov 2026: top 3 youth (13-17) per month get the in-kind youth award. Youth qualify with
+   * `eligibility.youthMinMatches` (30) completed matches; adults stay at `minMatches` (60). Award values are
+   * in kind and entered by an admin per month: no cash fields, no amounts in configuration.
+   */
   youthAwardSlots: number;
 }
 
@@ -71,7 +75,7 @@ export const DEFAULT_CONFIG: GameConfig = {
   monthlyCap: 60,
   dailyRankedLimit: 10,
   samePair: { per24h: 1, perMonth: 4 },
-  eligibility: { minMatches: 60, minOpponents: 0 },
+  eligibility: { minMatches: 60, minOpponents: 0, youthMinMatches: 30 },
   rating: { start: 1000, k: 32 },
   abandon: { graceSeconds: 20, blockAfter: 3, windowHours: 24, blockHours: 24 },
   questionRepeatDays: 90,
