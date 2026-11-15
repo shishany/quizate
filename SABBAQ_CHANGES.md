@@ -63,3 +63,35 @@ when its modules are built. Flutter, deployment, the repo rename and the subdoma
 5. **Legal review of youth data and consent wording** — open, owner: the association's legal adviser.
 
 Tests: `packages/game` 55 passing; `apps/web` 26 passing; typecheck and lint clean.
+
+## Showcase mode (branch `sabbaq-showcase`, 15 Nov 2026)
+
+`/showcase` demonstrates Sabbaq's value on simulated data. It only adds new files (`apps/web/src/app/showcase`,
+`components/showcase`, `lib/showcase`); normal routes and the MVP flags are unchanged. Everything simulated carries
+"بيانات توضيحية · Demo data" (the owner asked for this label, although the app's wording rule avoids "demo").
+
+1. **Showcase shell** — done. Top bar with the phase control (MVP | المرحلة 2 | المرحلة 3) and "ابدأ الجولة". The phase
+   sets flags for this tab only (sessionStorage): MVP = current flags; Phase 2 adds ladder, Mirror Challenge, speed
+   round, practice, daily claim, missions, nearby matching, Nafath required (view only) and Urdu; Phase 3 shows
+   placeholder cards (clubs, team trivia, team sudoku, word game, city leaderboards, sponsor self-service, "قريباً").
+   Every feature carries a phase badge.
+2. **Live simulation** — done. 24 seeded players with Saudi first names and cities; a live feed ("نورة من بريدة
+   فازت +16", with masculine/feminine verbs), ticking counters, a leaderboard that moves every 2.5 s with the real
+   Elo rule, and an instant match (opponent in 2 s, real questions and timer, not saved).
+3. **Sponsor view** `/showcase/sponsor` — done. Campaign card (views, answers, % correct, seconds of attention at
+   10 s per view), side by side with "traditional ad ≈ 2 s before skip", cost per 1,000 views (SAR 40 default),
+   share of the month's prize pool funded, and a calculator (questions per match × daily players × price → monthly
+   views and SAR; assumes one match per player per day, 30 days), plus the sponsor-funded prize pool.
+4. **Association impact** `/showcase/impact` — done. Questions answered, players reached, cities, youth 13–17,
+   breakdown by category, mapped to نشر الثقافة والمعرفة، الوصول لأكبر عدد، استقطاب الداعمين.
+5. **Guided tour** — done. Six steps (player → match → sponsor → prizes → impact → roadmap) with a spotlight overlay
+   and a bottom card (Back / Next / End, Escape closes, follows scroll, respects reduced motion). Arabic first,
+   English toggle in the top bar.
+6. **Tokens and mobile** — done. Showcase cards use the Sabbaq `card`/`line` tokens; the main action uses `action`
+   only with 19px bold labels, smaller white text uses `action-strong`. No new dependencies.
+
+Showcase strings are Arabic and English only (the request asked for an Arabic/English toggle); Urdu falls back to
+Arabic there. Checked: 38 web tests pass (12 new), typecheck, lint, format and `next build`; a headless 390px run of
+the static export showed no horizontal overflow and no console errors on `/showcase`, `/showcase/sponsor`,
+`/showcase/impact`, `/play` and `/`, the feed moving, the instant match starting and all six tour steps highlighting
+their target.
