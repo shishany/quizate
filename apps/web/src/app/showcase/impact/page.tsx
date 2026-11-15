@@ -1,8 +1,7 @@
 'use client';
 
 import { MATCH_CATEGORIES, halalasToSar, riyadhMonthKey } from '@quizate/game';
-import { Card } from '@/components/ui';
-import { DemoChip } from '@/components/showcase/ui';
+import { DemoChip, SCard } from '@/components/showcase/ui';
 import { SAMPLE_SPONSORS, sampleCampaigns } from '@/data/sponsors';
 import { useT } from '@/i18n';
 import { useShowcase } from '@/lib/showcase/context';
@@ -56,7 +55,7 @@ export default function ShowcaseImpact() {
           ))}
         </div>
         <DemoChip />
-        <Card title={s.impact.goals} className="bg-card">
+        <SCard title={s.impact.goals}>
           <ul className="space-y-2">
             {goals.map(([[title, body], v]) => (
               <li key={title} className="rounded-xl border-s-4 border-highlight bg-bg p-3">
@@ -65,8 +64,8 @@ export default function ShowcaseImpact() {
               </li>
             ))}
           </ul>
-        </Card>
-        <Card title={s.impact.categories} action={<DemoChip />} className="bg-card">
+        </SCard>
+        <SCard title={s.impact.categories} action={<DemoChip />}>
           <ul className="space-y-2 text-sm">
             {im.byCategory.map((c) => (
               <li key={c.id}>
@@ -83,7 +82,7 @@ export default function ShowcaseImpact() {
               </li>
             ))}
           </ul>
-        </Card>
+        </SCard>
       </div>
     </>
   );

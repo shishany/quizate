@@ -10,8 +10,8 @@ import {
   type Outcome,
 } from '@quizate/game';
 import { MatchPlayer, type MatchOutcome } from '@/components/player/MatchPlayer';
-import { Button, Card } from '@/components/ui';
-import { DemoChip } from '@/components/showcase/ui';
+import { Button } from '@/components/ui';
+import { DemoChip, SCard } from '@/components/showcase/ui';
 import { useT } from '@/i18n';
 import { useShowcase } from '@/lib/showcase/context';
 import { useS } from '@/lib/showcase/i18n';
@@ -49,7 +49,7 @@ export function LiveFeed() {
   const { sim } = useShowcase();
   const byId = (id: string) => sim.players.find((p) => p.id === id);
   return (
-    <Card title={s.live.feed} action={<DemoChip />} className="bg-card">
+    <SCard title={s.live.feed} action={<DemoChip />}>
       <ul className="space-y-1.5 text-sm">
         {sim.feed.map((f) => {
           const w = byId(f.winnerId);
@@ -68,7 +68,7 @@ export function LiveFeed() {
           );
         })}
       </ul>
-    </Card>
+    </SCard>
   );
 }
 
@@ -78,7 +78,7 @@ export function LiveBoard() {
   const { sim } = useShowcase();
   const top = boardOf(sim).slice(0, 8);
   return (
-    <Card title={s.live.board} action={<DemoChip />} className="bg-card">
+    <SCard title={s.live.board} action={<DemoChip />}>
       <ol className="divide-y divide-line">
         {top.map((p, i) => (
           <li
@@ -103,7 +103,7 @@ export function LiveBoard() {
           </li>
         ))}
       </ol>
-    </Card>
+    </SCard>
   );
 }
 
@@ -156,7 +156,7 @@ export function DemoMatch() {
   }
 
   return (
-    <Card title={s.live.matchTitle} action={<DemoChip />} className="bg-card">
+    <SCard title={s.live.matchTitle} action={<DemoChip />}>
       <div data-tour="match">
         {phase.kind === 'idle' && (
           <>
@@ -211,6 +211,6 @@ export function DemoMatch() {
           </div>
         )}
       </div>
-    </Card>
+    </SCard>
   );
 }

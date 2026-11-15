@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import type { Phase } from '@/lib/showcase/phases';
 import { useS } from '@/lib/showcase/i18n';
 
@@ -30,5 +31,30 @@ export function PhaseBadge({ phase }: { phase: Phase }) {
     >
       {s.phases[phase]}
     </span>
+  );
+}
+
+/** Showcase card on the Sabbaq tokens (`card` background, `line` border). The app's own Card stays unchanged. */
+export function SCard({
+  title,
+  action,
+  children,
+  className = '',
+}: {
+  title?: ReactNode;
+  action?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={`rounded-2xl border border-line bg-card p-4 shadow-sm ${className}`}>
+      {(title || action) && (
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          {title && <h2 className="text-base font-bold text-ink">{title}</h2>}
+          {action}
+        </div>
+      )}
+      {children}
+    </section>
   );
 }

@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { halalasToSar, monthlyPoolHalalas, riyadhMonthKey, scaledPrizeTable } from '@quizate/game';
-import { Card } from '@/components/ui';
-import { DemoChip } from '@/components/showcase/ui';
+import { DemoChip, SCard } from '@/components/showcase/ui';
 import { SAMPLE_SPONSORS, sampleCampaigns } from '@/data/sponsors';
 import { useT } from '@/i18n';
 import { useS } from '@/lib/showcase/i18n';
@@ -83,10 +82,9 @@ export default function ShowcaseSponsor() {
       </section>
 
       <div data-tour="sponsor" className="space-y-4">
-        <Card
+        <SCard
           title={fill(s.sponsor.campaign, { name: sponsor ? sponsor.name[lang] : campaign.id })}
           action={<DemoChip />}
-          className="bg-card"
         >
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {stat(s.sponsor.views, num(t.views))}
@@ -126,9 +124,9 @@ export default function ShowcaseSponsor() {
             {stat(s.sponsor.cpm, `${halalasToSar(campaign.pricePer1000Halalas)} SAR`)}
             {stat(s.sponsor.poolShare, `${num(Math.round(poolShareOf(fundingThis) * 100))}%`)}
           </div>
-        </Card>
+        </SCard>
 
-        <Card title={s.sponsor.calc} className="bg-card">
+        <SCard title={s.sponsor.calc}>
           <div className="grid gap-3 sm:grid-cols-3">
             {input(s.sponsor.calcQ, q, setQ)}
             {input(s.sponsor.calcPlayers, players, setPlayers, 500)}
@@ -142,10 +140,10 @@ export default function ShowcaseSponsor() {
             {fill(s.sponsor.calcPool, { p: num(Math.round(calc.poolShare * 100)) })}
           </p>
           <p className="mt-1 text-xs text-muted">{s.sponsor.calcNote}</p>
-        </Card>
+        </SCard>
       </div>
 
-      <Card title={s.sponsor.prizes} action={<DemoChip />} className="bg-card">
+      <SCard title={s.sponsor.prizes} action={<DemoChip />}>
         <div data-tour="prizes">
           <p className="text-sm text-muted">{s.sponsor.prizesBody}</p>
           <div className="mt-3 rounded-xl bg-highlight/25 p-3">
@@ -165,7 +163,7 @@ export default function ShowcaseSponsor() {
           <p className="mt-2 text-sm">{s.sponsor.youthAward}</p>
           <p className="mt-1 text-xs text-muted">{s.sponsor.locked}</p>
         </div>
-      </Card>
+      </SCard>
     </>
   );
 }

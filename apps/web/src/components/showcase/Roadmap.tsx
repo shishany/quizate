@@ -1,8 +1,7 @@
 'use client';
 
 import { FEATURE_FLAGS, isOn, type FeatureFlag } from '@quizate/game';
-import { Card } from '@/components/ui';
-import { PhaseBadge } from '@/components/showcase/ui';
+import { PhaseBadge, SCard } from '@/components/showcase/ui';
 import { useShowcase } from '@/lib/showcase/context';
 import { useS } from '@/lib/showcase/i18n';
 import { PHASE2_FLAGS, PHASE3_ITEMS, VIEW_ONLY, phaseOf, phaseRank } from '@/lib/showcase/phases';
@@ -35,7 +34,7 @@ export function Roadmap() {
     );
   };
   return (
-    <Card title={s.roadmap} className="bg-card">
+    <SCard title={s.roadmap}>
       <div data-tour="roadmap">
         <p className="mb-3 text-xs text-muted">{s.roadmapNote}</p>
         <h3 className="mb-2 text-sm font-bold">{s.mvpFeatures}</h3>
@@ -63,6 +62,6 @@ export function Roadmap() {
           ))}
         </ul>
       </div>
-    </Card>
+    </SCard>
   );
 }
