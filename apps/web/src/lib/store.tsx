@@ -9,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import type { SponsorEvent } from '@quizate/game';
 import {
   claimState,
   riyadhDayKey,
@@ -48,6 +49,7 @@ export type Action =
       abandoned?: boolean;
       flag?: { evidence: { ar: string; en: string } };
       sponsored?: { shown: number; answered: number; correct: number };
+      sponsorEvents?: SponsorEvent[];
       xp?: LedgerEntry | null;
     }
   | { type: 'mirrorFinished'; day: string; result: MirrorResult }
@@ -185,7 +187,7 @@ export function reducer(state: DemoState, action: Action): DemoState {
     case 'restoreAccount':
       return state.savedAccount ? { ...state, player: state.savedAccount } : state;
     case 'matchFinished': {
-      const { summary, ranked, seenIds = [], abandoned, flag, sponsored, xp } = action;
+      const { summary, ranked, seenIds = [], abandoned, flag, sponsored, sponsorEvents = [], xp } = action;
       const seen = { ...state.seen };
       for (const id of seenIds) seen[id] = summary.at;
       const player = state.player ? { ...state.player, rating: summary.ratingAfter } : null;
@@ -220,6 +222,7 @@ export function reducer(state: DemoState, action: Action): DemoState {
         abandons: abandoned ? [...state.abandons, summary.at] : state.abandons,
         fraud,
         sponsorTally: tally,
+        sponsorEvents: sponsorEvents.length ? [...state.sponsorEvents, ...sponsorEvents] : state.sponsorEvents,
         activeRanked: state.activeRanked?.id === summary.id ? null : state.activeRanked,
         xp: xp ? [...state.xp, xp] : state.xp,
         activeDays: summary.forfeit

@@ -5,7 +5,7 @@ import type {
   RankedResult,
   SelectableQuestion,
 } from '@quizate/game';
-import type { AgeGroup, ConsentStatus, GuardianConsent } from '@quizate/game';
+import type { AgeGroup, ConsentStatus, GuardianConsent, SponsorEvent } from '@quizate/game';
 import type { BiText, Category } from '@/data/questions';
 
 export type Locale = 'ar' | 'en' | 'ur';
@@ -210,4 +210,6 @@ export interface DemoState {
   ibanRequiredAt: 'signup' | 'ranked' | 'prize';
   /** Sponsored answers given by this player: city → counts. */
   sponsorTally: { impressions: number; answers: number; correct: number };
+  /** CR v3 section 8: append-only view/answer events (the events table). */
+  sponsorEvents: SponsorEvent[];
 }

@@ -1,3 +1,4 @@
+import { DAY_MS, riyadhDayKey, seededRng, type Campaign, type ReportRow } from '@quizate/game';
 import type { BiText } from './questions';
 
 /**
@@ -44,3 +45,34 @@ export const SAMPLE_SPONSORS: SampleSponsor[] = [
 
 export const sponsorForCampaign = (campaignId: string | null) =>
   SAMPLE_SPONSORS.find((s) => s.campaignId === campaignId);
+
+/**
+ * Sample campaigns (CR v3 section 8): each runs from 12 days before to 18 days after "now". Price is per 1,000 views
+ * in halalas; 2,500 = SAR 25.
+ */
+export function sampleCampaigns(now: Date): Campaign[] {
+  return SAMPLE_SPONSORS.map((s, i) => ({
+    id: s.campaignId,
+    sponsorId: s.id,
+    startsAt: new Date(now.getTime() - (12 + i * 3) * DAY_MS).toISOString(),
+    endsAt: new Date(now.getTime() + 18 * DAY_MS).toISOString(),
+    viewQuota: 300_000,
+    pricePer1000Halalas: 2_500,
+  }));
+}
+
+/**
+ * Daily totals that stand in for the other players' events in the sample version (generating every event object
+ * would be wasteful). The player's own events are added on top from the events table.
+ */
+export function sampleCampaignRows(campaign: Campaign, now: Date): ReportRow[] {
+  const rng = seededRng(campaign.id.length * 7919 + campaign.viewQuota);
+  const rows: ReportRow[] = [];
+  for (let t = new Date(campaign.startsAt).getTime(); t < Math.min(now.getTime(), new Date(campaign.endsAt).getTime()); t += DAY_MS) {
+    const views = Math.round(6_000 + rng() * 6_000);
+    const answers = Math.round(views * (0.9 + rng() * 0.08));
+    const correct = Math.round(answers * (0.55 + rng() * 0.3));
+    rows.push({ day: riyadhDayKey(new Date(t)), views, answers, correct, correctPct: null });
+  }
+  return rows;
+}
