@@ -6,7 +6,12 @@
 export interface GameConfig {
   /** BR-01 */ pointsPerCorrect: number;
   /** BR-01 */ questionsPerMatch: number;
-  /** BRD section 2 step 5 */ questionSeconds: number;
+  /** Sabbaq CR v3 section 5: 10 s per question, timed by the server */ questionSeconds: number;
+  /**
+   * Sabbaq CR v3 section 5: a correct answer scores clamp(round(base - perSecond * elapsed_s), min, pointsPerCorrect);
+   * wrong or timeout scores 0. `pointsPerCorrect` is the maximum (10), so a match is worth at most 100.
+   */
+  speedPoints: { base: number; perSecond: number; min: number };
   /** BR-04, as fractions of the player's own match score */
   monthlyShare: { win: number; loss: number; draw: number };
   /** BR-05 */ monthlyCap: number;
@@ -45,7 +50,8 @@ export interface MatchmakingStep {
 export const DEFAULT_CONFIG: GameConfig = {
   pointsPerCorrect: 10,
   questionsPerMatch: 10,
-  questionSeconds: 15,
+  questionSeconds: 10,
+  speedPoints: { base: 10, perSecond: 0.5, min: 5 },
   monthlyShare: { win: 1, loss: 0.25, draw: 0.5 },
   monthlyCap: 60,
   dailyRankedLimit: 10,

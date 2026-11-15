@@ -3,6 +3,8 @@ import {
   matchScore,
   monthlyPoints,
   outcomeFor,
+  correctCount,
+  totalAnswerMs,
   rankedXp,
   updateRatings,
   type AnswerRecord,
@@ -37,7 +39,9 @@ export function settle(
   const cfg = state.config;
   const myScore = matchScore(m.mine, cfg);
   const theirScore = matchScore(m.theirs, cfg);
-  const outcome = m.forfeit ? 'loss' : outcomeFor(myScore, theirScore);
+  const outcome = m.forfeit
+    ? 'loss'
+    : outcomeFor(myScore, theirScore, totalAnswerMs(m.mine, cfg), totalAnswerMs(m.theirs, cfg));
   const ratingBefore = state.player?.rating ?? cfg.rating.start;
   const ranked = m.mode === 'ranked';
 
@@ -54,7 +58,7 @@ export function settle(
       ? xpGrant(
           state,
           'ranked',
-          rankedXp(myScore / cfg.pointsPerCorrect, outcome === 'win', ENG),
+          rankedXp(correctCount(m.mine), outcome === 'win', ENG),
           m.at,
           m.id,
         )
@@ -68,7 +72,7 @@ export function settle(
     myScore,
     opponentScore: theirScore,
     outcome,
-    correct: myScore / cfg.pointsPerCorrect,
+    correct: correctCount(m.mine),
     questions: m.questions.length,
     monthlyPoints: points,
     counted,

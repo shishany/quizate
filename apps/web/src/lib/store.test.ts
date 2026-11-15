@@ -44,14 +44,14 @@ function match(state: DemoState, over: Partial<SettleInput> = {}): SettleInput {
 }
 
 describe('match settlement', () => {
-  it('BR-01, BR-03, BR-04, BR-09: a ranked win scores, earns monthly points and rating', () => {
+  it('BR-01 (CR v3 speed points: 9 at 3 s), BR-03, BR-04, BR-09: a ranked win scores, earns monthly points and rating', () => {
     const s = signedIn();
     const action = settle(s, match(s));
     expect(action.summary).toMatchObject({
-      myScore: 80,
-      opponentScore: 50,
+      myScore: 72,
+      opponentScore: 45,
       outcome: 'win',
-      monthlyPoints: 80,
+      monthlyPoints: 72,
       counted: true,
       ratingAfter: 1212,
     });
@@ -202,8 +202,8 @@ describe('FR-30 engagement', () => {
     expect(action.xp?.amount).toBe(20 + 2 * 8 + 15);
     const next = reducer(s, action);
     expect(next.xp).toHaveLength(1);
-    expect(next.myResults[0]?.score).toBe(80);
-    expect(action.summary.monthlyPoints).toBe(80);
+    expect(next.myResults[0]?.score).toBe(72);
+    expect(action.summary.monthlyPoints).toBe(72);
   });
 
   it('practice XP stops at the daily cap of 200', () => {

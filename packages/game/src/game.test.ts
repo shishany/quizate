@@ -28,6 +28,7 @@ import {
   type Difficulty,
   type RankedResult,
   type SelectableQuestion,
+  totalAnswerMs,
 } from './index.js';
 
 const ans = (correct: boolean, latencyMs: number | null = 3000): AnswerRecord => ({
@@ -37,19 +38,22 @@ const ans = (correct: boolean, latencyMs: number | null = 3000): AnswerRecord =>
 });
 
 describe('scoring', () => {
-  it('BR-01: 10 points per correct answer, 0 for wrong or timeout, max 100', () => {
-    expect(matchScore([ans(true), ans(false), ans(false, null)], cfg)).toBe(10);
-    expect(
-      matchScore(
-        Array.from({ length: 10 }, () => ans(true)),
-        cfg,
-      ),
-    ).toBe(100);
+  it('CR v3 s5: correct = clamp(round(10 - 0.5 x seconds), 5, 10), wrong or timeout 0, max 100', () => {
+    expect(cfg.questionSeconds).toBe(10);
+    expect(matchScore([ans(true, 0)], cfg)).toBe(10);
+    expect(matchScore([ans(true, 3000)], cfg)).toBe(9); // 10 - 1.5 = 8.5 -> 9 (round half up)
+    expect(matchScore([ans(true, 4000)], cfg)).toBe(8);
+    expect(matchScore([ans(true, 9900)], cfg)).toBe(5);
+    expect(matchScore([ans(false, 1000), ans(true, null)], cfg)).toBe(0);
+    expect(matchScore(Array.from({ length: 10 }, () => ans(true, 500)), cfg)).toBe(100);
+    expect(averageLatencyMs([ans(true, 1000), ans(false, 3000), ans(false, null)])).toBe(2000);
   });
 
-  it('BR-02: speed adds nothing to the score and is kept for tie-breaks', () => {
-    expect(matchScore([ans(true, 900)], cfg)).toBe(matchScore([ans(true, 14000)], cfg));
-    expect(averageLatencyMs([ans(true, 1000), ans(false, 3000), ans(false, null)])).toBe(2000);
+  it('CR v3 s5: tie goes to the lower total answer time', () => {
+    expect(outcomeFor(50, 50, 30_000, 31_000)).toBe('win');
+    expect(outcomeFor(50, 50, 31_000, 30_000)).toBe('loss');
+    expect(outcomeFor(50, 50, 30_000, 30_000)).toBe('draw');
+    expect(totalAnswerMs([ans(true, 2000), ans(false, null)], cfg)).toBe(12_000);
   });
 
   it('BR-03: higher score wins, equal is a draw', () => {
