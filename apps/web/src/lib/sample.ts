@@ -122,6 +122,7 @@ export const SAMPLE_PLAYERS: SamplePlayer[] = (() => {
       // Every sixth sample player is 13-17; a few adults have not had their ID checked yet.
       ageGroup: i % 6 === 4 ? ('youth' as const) : ('adult' as const),
       cashEligible: i % 6 !== 4 && i % 9 !== 2,
+      birthDate: i % 6 === 4 ? `${2011 - (i % 3)}-06-15` : `${1980 + ((i * 7) % 25)}-03-10`,
     };
   });
 })();

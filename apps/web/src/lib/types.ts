@@ -9,8 +9,7 @@ import type {
   AgeGroup,
   ConsentStatus,
   GuardianConsent,
-  PayoutReview,
-  PayoutStatus,
+  PayoutCheck,
   SponsorEvent,
 } from '@quizate/game';
 import type { BiText, Category } from '@/data/questions';
@@ -54,6 +53,8 @@ export interface SamplePlayer {
   /** CR v3: sample age group and cash eligibility (sample players are treated as ID-checked adults). */
   ageGroup: 'youth' | 'adult';
   cashEligible: boolean;
+  /** Declared date of birth (sample). */
+  birthDate: string;
 }
 
 export interface Player {
@@ -153,11 +154,10 @@ export type AdminRole =
   | 'prize_officer'
   | 'finance_approver';
 
-export interface PayoutRecord {
+/** The admin's ID + IBAN-name check for one player and month (the queue itself is derived at month close). */
+export interface PayoutRecord extends PayoutCheck {
   month: string;
   playerId: string;
-  status: PayoutStatus;
-  review: PayoutReview;
 }
 
 export interface YouthAward {

@@ -20,6 +20,7 @@ export interface BoardRow extends RankedStanding {
   allTime: number;
   ageGroup: 'youth' | 'adult';
   cashEligible: boolean;
+  birthDate: string;
   /** CR v3 section 6: 1-10 among qualified cash-eligible players. */
   prizeZone: number | null;
   /** CR v3 section 6: top qualified youth players (youth award). */
@@ -56,6 +57,7 @@ export function useBoard(now = new Date()): {
         r,
         sp,
         ageGroup: sp ? sp.ageGroup : (player?.ageGroup ?? 'adult'),
+        birthDate: sp ? sp.birthDate : (player?.birthDate ?? '2000-01-01'),
         // CR v3 section 3: cash_eligible = age >= 18 AND id_verified (an admin sets id_verified at payout).
         cashEligible: sp
           ? sp.cashEligible
@@ -67,10 +69,11 @@ export function useBoard(now = new Date()): {
       config.prizeTableHalalas.length,
       config.youthAwardSlots,
     );
-    const rows: BoardRow[] = base.map(({ r, sp, ageGroup, cashEligible: cash }) => {
+    const rows: BoardRow[] = base.map(({ r, sp, ageGroup, birthDate, cashEligible: cash }) => {
       return {
         ...r,
         ageGroup,
+        birthDate,
         cashEligible: cash,
         prizeZone: badges.get(r.playerId)?.prizeZone ?? null,
         youthTop: badges.get(r.playerId)?.youthTop ?? null,

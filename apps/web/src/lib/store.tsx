@@ -9,7 +9,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { canMovePayout, type PayoutReview, type PayoutStatus, type SponsorEvent } from '@quizate/game';
+import type { CheckFailure, SponsorEvent } from '@quizate/game';
 import {
   claimState,
   riyadhDayKey,
@@ -79,8 +79,15 @@ export type Action =
     }
   | { type: 'config'; key: ConfigKey; value: number; reason: string }
   | { type: 'fraud'; id: string; status: FraudStatus; reason: string }
-  | { type: 'payoutReview'; month: string; playerId: string; field: keyof PayoutReview; value: boolean }
-  | { type: 'payoutMove'; month: string; playerId: string; to: PayoutStatus; reason: string }
+  | {
+      type: 'payoutCheck';
+      month: string;
+      playerId: string;
+      result: 'passed' | 'failed';
+      failure?: CheckFailure;
+      reason: string;
+    }
+  | { type: 'payoutPaid'; month: string; playerId: string; reason: string }
   | { type: 'youthAward'; month: string; playerId: string; award: string };
 
 /** Editable configuration keys (FR-27), each a number at a path in GameConfig. */
@@ -518,33 +525,44 @@ export function reducer(state: DemoState, action: Action): DemoState {
         }),
       };
     }
-    case 'payoutReview':
-    case 'payoutMove': {
-      if (!state.adminRole || !PRIZE_ROLES.includes(state.adminRole)) return state;
+    case 'payoutCheck': {
+      if (!state.adminRole || !PRIZE_ROLES.includes(state.adminRole) || !action.reason.trim()) return state;
       const key = `${action.month}:${action.playerId}`;
-      const rec: PayoutRecord = state.payouts[key] ?? {
+      if (state.payouts[key]) return state; // one check per player and month; a failed place has moved on
+      const rec: PayoutRecord = {
         month: action.month,
         playerId: action.playerId,
-        status: 'pending_review',
-        review: { idChecked: false, ibanNameMatches: false },
+        result: action.result,
+        ...(action.failure ? { failure: action.failure } : {}),
       };
-      if (action.type === 'payoutReview') {
-        if (rec.status !== 'pending_review') return state;
-        const next = { ...rec, review: { ...rec.review, [action.field]: action.value } };
-        return {
-          ...state,
-          payouts: { ...state.payouts, [key]: next },
-          audit: audit(state, `payout.review.${action.field}`, key, null, {
-            before: String(rec.review[action.field]),
-            after: String(action.value),
-          }),
-        };
-      }
-      if (!action.reason.trim() || !canMovePayout(rec.status, action.to, rec.review)) return state;
+      // A passed ID + IBAN-name check sets id_verified, which makes an 18+ player cash eligible.
+      const player =
+        action.result === 'passed' && state.player?.id === action.playerId
+          ? { ...state.player, idVerified: true }
+          : state.player;
+      const logged = audit(state, `payout.check_${action.result}`, key, action.reason, {
+        before: 'id_check_pending',
+        after: action.result === 'passed' ? 'cash_eligible' : (action.failure ?? 'failed'),
+      });
       return {
         ...state,
-        payouts: { ...state.payouts, [key]: { ...rec, status: action.to } },
-        audit: audit(state, `payout.${action.to}`, key, action.reason, { before: rec.status, after: action.to }),
+        player,
+        payouts: { ...state.payouts, [key]: rec },
+        audit:
+          action.result === 'failed'
+            ? audit({ ...state, audit: logged }, 'payout.place_reassigned', key, 'place passes to the next eligible player')
+            : logged,
+      };
+    }
+    case 'payoutPaid': {
+      if (!state.adminRole || !PRIZE_ROLES.includes(state.adminRole) || !action.reason.trim()) return state;
+      const key = `${action.month}:${action.playerId}`;
+      const rec = state.payouts[key];
+      if (rec?.result !== 'passed' || rec.paid) return state;
+      return {
+        ...state,
+        payouts: { ...state.payouts, [key]: { ...rec, paid: true } },
+        audit: audit(state, 'payout.paid', key, action.reason, { before: 'cash_eligible', after: 'paid' }),
       };
     }
     case 'youthAward': {

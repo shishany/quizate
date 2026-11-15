@@ -2,12 +2,15 @@
 
 import { useState } from 'react';
 import {
-  canMovePayout,
+  canMarkPaid,
   halalasToSar,
   monthlyPoolHalalas,
+  payoutQueue,
   prizePoolHalalas,
   scaledPrizeTable,
+  type CheckFailure,
   type PayoutStatus,
+  type QueuePlace,
 } from '@quizate/game';
 import { Badge, Button, Card, Notice } from '@/components/ui';
 import { useT } from '@/i18n';
@@ -15,14 +18,20 @@ import { sampleCampaigns } from '@/data/sponsors';
 import { useBoard, type BoardRow } from '@/lib/standings';
 import { useStore } from '@/lib/store';
 import { fundingForMonth } from '@/lib/sponsorship';
-import type { PayoutRecord } from '@/lib/types';
 
-const TONE: Record<PayoutStatus, 'warn' | 'brand' | 'ok' | 'bad'> = {
-  pending_review: 'warn',
-  approved: 'brand',
+const TONE: Record<PayoutStatus, 'warn' | 'brand' | 'ok'> = {
+  id_check_pending: 'warn',
+  cash_eligible: 'brand',
   paid: 'ok',
-  rejected: 'bad',
 };
+
+const FAILURES: CheckFailure[] = ['id_mismatch', 'iban_name_mismatch', 'under_18'];
+
+/** The month that has closed: the queue is built for it (owner decision, 15 Nov 2026). */
+function lastMonthClose(now: Date): Date {
+  const riyadh = new Date(now.getTime() + 3 * 3_600_000);
+  return new Date(Date.UTC(riyadh.getUTCFullYear(), riyadh.getUTCMonth(), 1) - 3 * 3_600_000 - 1);
+}
 
 /**
  * CR v3 section 9: prize pool from sponsor funding, scaled table, payout queue with manual review, youth in-kind
@@ -33,12 +42,24 @@ export default function PrizesPage() {
   const { state } = useStore();
   const { d, num, fill, pick, date } = useT();
   const now = new Date();
-  const { month, rows } = useBoard(now);
+  const close = lastMonthClose(now);
+  const { month, rows } = useBoard(close);
   const table = state.config.prizeTableHalalas;
-  const funding = fundingForMonth(sampleCampaigns(now), state.sponsorEvents, month, now);
+  const funding = fundingForMonth(sampleCampaigns(close), state.sponsorEvents, month, close);
   const pool = monthlyPoolHalalas(table, funding);
   const scaled = scaledPrizeTable(table, pool);
-  const winners = rows.filter((r) => r.prizeZone !== null);
+  const checks = new Map(
+    Object.values(state.payouts)
+      .filter((p) => p.month === month)
+      .map((p) => [p.playerId, p]),
+  );
+  const queue = payoutQueue(
+    rows.map((r) => ({ playerId: r.playerId, qualified: r.eligible, birthDate: r.birthDate })),
+    checks,
+    scaled,
+    close,
+  );
+  const rowOf = (id: string) => rows.find((r) => r.playerId === id);
   const youth = rows.filter((r) => r.youthTop !== null);
   const log = state.audit.filter((a) => a.action.startsWith('payout.') || a.action.startsWith('youth_award.'));
 
@@ -91,13 +112,28 @@ export default function PrizesPage() {
       </div>
 
       <Card title={d.prizes.queue}>
-        {winners.length === 0 ? (
+        <p className="mb-2 text-sm text-muted">{d.prizes.queueNote}</p>
+        {queue.places.length === 0 ? (
           <p className="text-sm text-muted">{fill(d.prizes.queueEmpty, { m: num(state.config.eligibility.minMatches) })}</p>
         ) : (
           <ul className="divide-y divide-line">
-            {winners.map((r) => (
-              <PayoutRow key={r.playerId} row={r} month={month} amount={scaled[(r.prizeZone ?? 1) - 1] ?? 0} />
-            ))}
+            {queue.places.map((p) => {
+              const r = rowOf(p.playerId);
+              return r ? <PayoutRow key={p.playerId} row={r} month={month} place={p} /> : null;
+            })}
+          </ul>
+        )}
+        {queue.log.length > 0 && (
+          <ul className="mt-3 space-y-1 text-xs text-muted">
+            {queue.log.map((l) => {
+              const r = rowOf(l.playerId);
+              return (
+                <li key={l.playerId}>
+                  {r ? pick(r.name) : l.playerId} · {d.prizes.skip[l.reason]}
+                  {l.place !== null && ` · ${fill(d.prizes.placePassed, { n: num(l.place) })}`}
+                </li>
+              );
+            })}
           </ul>
         )}
       </Card>
@@ -150,70 +186,85 @@ export default function PrizesPage() {
   );
 }
 
-function PayoutRow({ row, month, amount }: { row: BoardRow; month: string; amount: number }) {
-  const { state, dispatch } = useStore();
+function PayoutRow({ row, month, place }: { row: BoardRow; month: string; place: QueuePlace }) {
+  const { dispatch } = useStore();
   const { d, num, pick } = useT();
   const [reason, setReason] = useState('');
-  const rec: PayoutRecord = state.payouts[`${month}:${row.playerId}`] ?? {
-    month,
-    playerId: row.playerId,
-    status: 'pending_review',
-    review: { idChecked: false, ibanNameMatches: false },
-  };
-  const move = (to: PayoutStatus) =>
-    dispatch({ type: 'payoutMove', month, playerId: row.playerId, to, reason });
-  const check = (field: 'idChecked' | 'ibanNameMatches', label: string) => (
-    <label className="flex items-center gap-2 text-sm">
-      <input
-        type="checkbox"
-        className="h-4 w-4 accent-brand"
-        checked={rec.review[field]}
-        disabled={rec.status !== 'pending_review'}
-        onChange={(e) =>
-          dispatch({ type: 'payoutReview', month, playerId: row.playerId, field, value: e.target.checked })
-        }
-      />
-      {label}
-    </label>
-  );
+  const [idChecked, setIdChecked] = useState(false);
+  const [ibanName, setIbanName] = useState(false);
+  const [failure, setFailure] = useState<CheckFailure>('id_mismatch');
+  const base = { month, playerId: row.playerId, reason };
   return (
     <li className="space-y-2 py-3">
       <div className="flex flex-wrap items-center gap-2">
-        <Badge tone="gold">#{num(row.prizeZone ?? 0)}</Badge>
+        <Badge tone="gold">#{num(place.place)}</Badge>
         <span className="font-semibold">{pick(row.name)}</span>
-        <span className="tabular text-sm text-muted">{halalasToSar(amount)}</span>
-        <Badge tone={TONE[rec.status]}>{d.prizes.status[rec.status]}</Badge>
+        <span className="tabular text-sm text-muted">{halalasToSar(place.amountHalalas)}</span>
+        <Badge tone={TONE[place.status]}>{d.prizes.status[place.status]}</Badge>
       </div>
-      <div className="flex flex-wrap gap-4">
-        {check('idChecked', d.prizes.idChecked)}
-        {check('ibanNameMatches', d.prizes.ibanName)}
-      </div>
-      {(rec.status === 'pending_review' || rec.status === 'approved') && (
-        <div className="flex flex-wrap items-center gap-2">
-          <input
-            className="min-w-0 flex-1 rounded-lg border border-line bg-card px-3 py-1.5 text-sm"
-            placeholder={d.prizes.reason}
-            aria-label={d.prizes.reason}
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-          />
-          {rec.status === 'pending_review' ? (
-            <Button
-              size="sm"
-              disabled={!reason.trim() || !canMovePayout(rec.status, 'approved', rec.review)}
-              onClick={() => move('approved')}
-            >
-              {d.prizes.approve}
-            </Button>
-          ) : (
-            <Button size="sm" disabled={!reason.trim()} onClick={() => move('paid')}>
-              {d.prizes.markPaid}
-            </Button>
+      {place.status !== 'paid' && (
+        <>
+          {place.status === 'id_check_pending' && (
+            <div className="flex flex-wrap gap-4 text-sm">
+              <label className="flex items-center gap-2">
+                <input type="checkbox" className="h-4 w-4 accent-brand" checked={idChecked} onChange={(e) => setIdChecked(e.target.checked)} />
+                {d.prizes.idChecked}
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" className="h-4 w-4 accent-brand" checked={ibanName} onChange={(e) => setIbanName(e.target.checked)} />
+                {d.prizes.ibanName}
+              </label>
+            </div>
           )}
-          <Button size="sm" variant="danger" disabled={!reason.trim()} onClick={() => move('rejected')}>
-            {d.prizes.reject}
-          </Button>
-        </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              className="min-w-0 flex-1 rounded-lg border border-line bg-card px-3 py-1.5 text-sm"
+              placeholder={d.prizes.reason}
+              aria-label={d.prizes.reason}
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+            />
+            {place.status === 'id_check_pending' ? (
+              <>
+                <Button
+                  size="sm"
+                  disabled={!reason.trim() || !idChecked || !ibanName}
+                  onClick={() => dispatch({ type: 'payoutCheck', ...base, result: 'passed' })}
+                >
+                  {d.prizes.checkPassed}
+                </Button>
+                <select
+                  aria-label={d.prizes.failure}
+                  className="rounded-lg border border-line bg-card px-2 py-1.5 text-sm"
+                  value={failure}
+                  onChange={(e) => setFailure(e.target.value as CheckFailure)}
+                >
+                  {FAILURES.map((f) => (
+                    <option key={f} value={f}>
+                      {d.prizes.skip[f]}
+                    </option>
+                  ))}
+                </select>
+                <Button
+                  size="sm"
+                  variant="danger"
+                  disabled={!reason.trim()}
+                  onClick={() => dispatch({ type: 'payoutCheck', ...base, result: 'failed', failure })}
+                >
+                  {d.prizes.checkFailed}
+                </Button>
+              </>
+            ) : (
+              <Button
+                size="sm"
+                disabled={!reason.trim() || !canMarkPaid(place)}
+                onClick={() => dispatch({ type: 'payoutPaid', ...base })}
+              >
+                {d.prizes.markPaid}
+              </Button>
+            )}
+          </div>
+        </>
       )}
     </li>
   );
