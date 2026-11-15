@@ -82,6 +82,30 @@ const ar = {
     goalReach: ['الوصول لأكبر عدد', '{p} لاعب من {n} مدن، منهم {y} من الناشئين.'],
     goalSupport: ['استقطاب الداعمين', '{s} رعاة يموّلون {f} ر.س هذا الشهر، تعود جوائز للاعبين.'],
   },
+  tour: {
+    next: 'التالي',
+    back: 'السابق',
+    skip: 'إنهاء الجولة',
+    done: 'تم',
+    of: '{i} من {n}',
+    steps: {
+      player: [
+        'اللاعب',
+        'لاعبون حقيقيون من مدن المملكة يتنافسون الآن، والترتيب يتحرك مع كل مباراة.',
+      ],
+      match: ['المباراة', 'عشرة أسئلة وعشر ثوانٍ لكل سؤال. جرّب مباراة فورية الآن.'],
+      sponsor: [
+        'الراعي',
+        'سؤال الراعي يحظى بعشر ثوانٍ من الانتباه، مع تقارير واضحة وحاسبة للحملة.',
+      ],
+      prizes: [
+        'الجوائز',
+        'يموّل الرعاة مجمّع الجوائز الشهري لأفضل 10، وجائزة عينية لأفضل الناشئين.',
+      ],
+      impact: ['الأثر', 'معرفة تنتشر في كل المدن، ومؤشرات ترتبط بأهداف الجمعية.'],
+      roadmap: ['خارطة الطريق', 'بدّل المرحلة من الأعلى لترى ما تضيفه المرحلة 2 والمرحلة 3.'],
+    },
+  },
   features: {
     classic_1v1: ['تحدٍّ 1 ضد 1', 'عشرة أسئلة، عشر ثوانٍ لكل سؤال، ونقاط حسب السرعة.'],
     categories: ['الفئات', 'منوّع، تاريخ، جغرافيا، أدب، علوم، رياضة.'],
@@ -211,6 +235,33 @@ const en: ShowcaseDict = {
       'Attracting supporters',
       '{s} sponsors fund SAR {f} this month, returned to players as prizes.',
     ],
+  },
+  tour: {
+    next: 'Next',
+    back: 'Back',
+    skip: 'End tour',
+    done: 'Done',
+    of: '{i} of {n}',
+    steps: {
+      player: [
+        'The player',
+        'Players from cities across the Kingdom compete right now, and the ranking moves with every match.',
+      ],
+      match: ['The match', 'Ten questions, ten seconds each. Try an instant match now.'],
+      sponsor: [
+        'The sponsor',
+        'A sponsored question gets ten seconds of attention, with clear reports and a campaign calculator.',
+      ],
+      prizes: [
+        'The prizes',
+        'Sponsors fund the monthly prize pool for the top 10, plus an in-kind award for the top youth.',
+      ],
+      impact: [
+        'The impact',
+        "Knowledge spreading across every city, with measures tied to the association's goals.",
+      ],
+      roadmap: ['The roadmap', 'Switch the phase at the top to see what Phase 2 and Phase 3 add.'],
+    },
   },
   features: {
     classic_1v1: ['1v1 challenge', 'Ten questions, ten seconds each, points for speed.'],

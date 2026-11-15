@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { ProductMark } from '@/components/ui';
+import { Tour } from '@/components/showcase/Tour';
 import { DemoChip } from '@/components/showcase/ui';
 import { ShowcaseProvider, useShowcase } from '@/lib/showcase/context';
 import { useS } from '@/lib/showcase/i18n';
@@ -84,6 +85,7 @@ function Shell({ children }: { children: ReactNode }) {
         </nav>
       </header>
       <main className="mx-auto max-w-3xl space-y-4 px-4 pt-4">{children}</main>
+      <Tour />
     </div>
   );
 }
