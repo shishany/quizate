@@ -44,7 +44,7 @@ function match(state: DemoState, over: Partial<SettleInput> = {}): SettleInput {
 }
 
 describe('match settlement', () => {
-  it('BR-01 (CR v3 speed points: 9 at 3 s), BR-03, BR-04, BR-09: a ranked win scores, earns monthly points and rating', () => {
+  it('BR-01 (CR v3 speed points: 9 at 3 s), BR-03, BR-04, CR v3 s6 monthly Elo from 1,000 (K=32): a ranked win scores, earns monthly points and rating', () => {
     const s = signedIn();
     const action = settle(s, match(s));
     expect(action.summary).toMatchObject({
@@ -53,11 +53,11 @@ describe('match settlement', () => {
       outcome: 'win',
       monthlyPoints: 72,
       counted: true,
-      ratingAfter: 1212,
+      ratingAfter: 1016,
     });
     const next = reducer(s, action);
     expect(next.myResults).toHaveLength(1);
-    expect(next.player?.rating).toBe(1212);
+    expect(next.player?.rating).toBe(1016);
     expect(Object.keys(next.seen)).toHaveLength(10);
   });
 

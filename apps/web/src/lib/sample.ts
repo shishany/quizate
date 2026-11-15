@@ -119,6 +119,9 @@ export const SAMPLE_PLAYERS: SamplePlayer[] = (() => {
         lng: roundCoord(city.lng + (rng() - 0.5) * 0.3),
       },
       allTimeBase: Math.round(2000 + rng() * 26000) / 2,
+      // Every sixth sample player is 13-17; a few adults have not had their ID checked yet.
+      ageGroup: i % 6 === 4 ? ('youth' as const) : ('adult' as const),
+      cashEligible: i % 6 !== 4 && i % 9 !== 2,
     };
   });
 })();
@@ -129,6 +132,13 @@ export const samplePlayerById = (id: string) => SAMPLE_PLAYERS.find((p) => p.id 
  * This month's ranked results for every sample player, generated from the month key so the leaderboard looks
  * lived-in on any day. Times fall between the start of the Riyadh month and now.
  */
+/**
+ * Sample players carry an all-time skill rating centred on 1,200. CR v3 section 6 restarts everyone at 1,000 each
+ * month, so a sample opponent's monthly rating is its offset from 1,200 added to the monthly start.
+ */
+export const toMonthlyScale = (sampleRating: number, cfg: GameConfig): number =>
+  cfg.rating.start + (sampleRating - 1200);
+
 export function sampleMonthResults(now: Date, cfg: GameConfig): Map<string, RankedResult[]> {
   const month = riyadhMonthKey(now);
   const rng = seededRng(Number(month.replace('-', '')));
@@ -138,7 +148,8 @@ export function sampleMonthResults(now: Date, cfg: GameConfig): Map<string, Rank
   const out = new Map<string, RankedResult[]>(SAMPLE_PLAYERS.map((p) => [p.id, []]));
 
   SAMPLE_PLAYERS.forEach((p, i) => {
-    const target = Math.round((8 + rng() * 62) * elapsed);
+    // CR v3 section 6 qualifies at 60 matches, so the sample's busiest players play up to ~90 a month.
+    const target = Math.round((15 + rng() * 75) * Math.max(elapsed, 0.75));
     for (let m = 0; m < target; m++) {
       const opp = SAMPLE_PLAYERS[
         (i + 1 + Math.floor(rng() * (SAMPLE_PLAYERS.length - 1))) % SAMPLE_PLAYERS.length
@@ -178,6 +189,7 @@ export function sampleMonthResults(now: Date, cfg: GameConfig): Map<string, Rank
         ),
         score,
         correct: correctCount(mine),
+        opponentRating: toMonthlyScale(opp.rating, cfg),
         questions: cfg.questionsPerMatch,
         latencyTotalMs: answered.reduce((s, a) => s + (a.latencyMs ?? 0), 0),
         answered: answered.length,

@@ -165,7 +165,7 @@ export const ur: Dictionary = {
     counted: 'شمار شدہ میچ',
     opponents: 'مختلف مخالفین',
     eligible: 'انعامی درجہ بندی کے لیے اہل',
-    notEligible: 'اہلیت کے لیے: کم از کم {m} شمار شدہ میچ اور {o} مختلف مخالفین',
+    notEligible: 'انعامات کی اہلیت: اس مہینے کم از کم {m} مکمل میچ (ریکارڈ شدہ مخالف والے میچ شمار نہیں)',
     monthEnds: 'درجہ بندی بند ہونے میں',
     days: 'دن',
     hours: 'گھنٹے',
@@ -263,6 +263,9 @@ export const ur: Dictionary = {
     again: 'دوبارہ کھیلیں',
   },
   lb: {
+    prizeZone: 'انعامی زون',
+    youthBadge: 'نوجوان ایوارڈ',
+    rating: 'ریٹنگ',
     title: 'درجہ بندی',
     monthly: 'اس مہینے',
     allTime: 'ہر وقت',

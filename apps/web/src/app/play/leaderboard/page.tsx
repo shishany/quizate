@@ -49,7 +49,7 @@ export default function LeaderboardPage() {
           {list.map((r) => (
             <li
               key={r.playerId}
-              className={`flex items-center gap-3 px-4 py-3 ${r.me ? 'bg-brand/5' : ''}`}
+              className={`flex items-center gap-3 px-4 py-3 ${r.me ? 'bg-highlight/25' : r.prizeZone ? 'bg-highlight/10' : ''}`}
             >
               <span
                 className={`tabular grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-bold ${r.rank <= 3 ? 'bg-gold/20 text-gold-ink' : 'bg-slate-100 text-muted'}`}
@@ -60,7 +60,11 @@ export default function LeaderboardPage() {
                 <div className="flex items-center gap-2">
                   <span className="truncate font-semibold">{pick(r.name)}</span>
                   {r.me && <Badge tone="brand">{d.lb.you}</Badge>}
-                  {tab === 'monthly' && r.eligible && <Badge tone="ok">{d.lb.eligible}</Badge>}
+                  {tab === 'monthly' && r.prizeZone && <Badge tone="gold">{d.lb.prizeZone}</Badge>}
+                  {tab === 'monthly' && r.youthTop && <Badge tone="ok">{d.lb.youthBadge}</Badge>}
+                  {tab === 'monthly' && r.eligible && !r.prizeZone && !r.youthTop && (
+                    <Badge tone="brand">{d.lb.eligible}</Badge>
+                  )}
                 </div>
                 <div className="tabular truncate text-xs text-muted">
                   {pick(cityById(r.cityId).name)}
@@ -69,8 +73,10 @@ export default function LeaderboardPage() {
                 </div>
               </div>
               <span className="tabular text-end font-bold">
-                {num(tab === 'allTime' ? r.allTime : r.points, 1)}
-                <span className="ms-1 text-xs font-normal text-muted">{d.common.pts}</span>
+                {tab === 'monthly' ? num(r.rating) : num(tab === 'allTime' ? r.allTime : r.points, 1)}
+                <span className="ms-1 text-xs font-normal text-muted">
+                  {tab === 'monthly' ? d.lb.rating : d.common.pts}
+                </span>
               </span>
             </li>
           ))}

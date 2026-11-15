@@ -161,7 +161,7 @@ export const en: Dictionary = {
     counted: 'Counted matches',
     opponents: 'Different opponents',
     eligible: 'Qualified for the prize ranking',
-    notEligible: 'To qualify: at least {m} counted matches and {o} different opponents',
+    notEligible: 'To qualify for prizes: at least {m} completed matches this month (recorded-opponent matches do not count)',
     monthEnds: 'Ranking closes in',
     days: 'days',
     hours: 'hours',
@@ -261,6 +261,9 @@ export const en: Dictionary = {
     again: 'Play again',
   },
   lb: {
+    prizeZone: 'Prize zone',
+    youthBadge: 'Youth award',
+    rating: 'rating',
     title: 'Ranking',
     monthly: 'This month',
     allTime: 'All time',

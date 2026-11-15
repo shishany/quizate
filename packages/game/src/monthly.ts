@@ -1,5 +1,6 @@
 import type { GameConfig } from './config.js';
 import type { Outcome } from './scoring.js';
+import { updateRatings } from './rating.js';
 import { riyadhMonthKey } from './time.js';
 
 /**
@@ -23,6 +24,35 @@ export interface RankedResult {
   /** Sum of server-measured latencies over answered questions, and how many were answered. */
   latencyTotalMs: number;
   answered: number;
+  /** Opponent's monthly rating before the match (Elo input); start rating when unknown. */
+  opponentRating?: number;
+  /** Ghost opponent (a replayed real match): counts for rating, not for the 60-match qualification. */
+  ghost?: boolean;
+}
+
+export interface RatingStep {
+  matchId: string;
+  at: string;
+  before: number;
+  after: number;
+}
+
+/** Sabbaq CR v3 section 6: replays the month's ranked matches from the start rating (Elo, K from config). */
+export function monthlyRating(
+  results: readonly RankedResult[],
+  month: string,
+  cfg: GameConfig,
+): { rating: number; history: RatingStep[] } {
+  let rating = cfg.rating.start;
+  const history: RatingStep[] = [];
+  for (const r of results
+    .filter((x) => riyadhMonthKey(x.at) === month)
+    .sort((a, b) => a.at.localeCompare(b.at))) {
+    const after = updateRatings(rating, r.opponentRating ?? cfg.rating.start, r.outcome, cfg).a;
+    history.push({ matchId: r.matchId, at: r.at, before: rating, after });
+    rating = after;
+  }
+  return { rating, history };
 }
 
 export interface Standing {
@@ -40,7 +70,11 @@ export interface Standing {
   avgLatencyMs: number;
   /** When the final points total was reached (UTC ISO), or null with no points. */
   reachedAt: string | null;
-  /** BR-08 */
+  /** Monthly rating (CR v3 section 6). */
+  rating: number;
+  /** Completed non-ghost matches this month (the 60-match qualification). */
+  qualifyingMatches: number;
+  /** CR v3 section 6: >= 60 completed non-ghost matches. */
   eligible: boolean;
 }
 
@@ -72,6 +106,7 @@ export function standingFor(
     answered += r.answered;
   }
   const distinctOpponents = new Set(counted.map((r) => r.opponentId)).size;
+  const qualifyingMatches = inMonth.filter((r) => !r.ghost).length;
 
   return {
     playerId,
@@ -83,18 +118,21 @@ export function standingFor(
     accuracy: questions ? correct / questions : 0,
     avgLatencyMs: answered ? latency / answered : Infinity,
     reachedAt,
+    rating: monthlyRating(inMonth, month, cfg).rating,
+    qualifyingMatches,
     eligible:
-      counted.length >= cfg.eligibility.minMatches &&
+      qualifyingMatches >= cfg.eligibility.minMatches &&
       distinctOpponents >= cfg.eligibility.minOpponents,
   };
 }
 
 /**
- * BR-10: points desc, then accuracy desc, then average response time asc, then whoever reached their final points
+ * Sabbaq CR v3 section 6: everyone ranks together by monthly rating; then BR-10: points desc, accuracy desc, then average response time asc, then whoever reached their final points
  * first. Player id last, only so the order is stable.
  */
 export function compareStandings(a: Standing, b: Standing): number {
   return (
+    b.rating - a.rating ||
     b.points - a.points ||
     b.accuracy - a.accuracy ||
     a.avgLatencyMs - b.avgLatencyMs ||

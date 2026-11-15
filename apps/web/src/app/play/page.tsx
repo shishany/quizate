@@ -106,32 +106,34 @@ export default function Home() {
                 <div className="mb-1 flex justify-between">
                   <span>{d.home.counted}</span>
                   <span className="tabular text-muted">
-                    {num(Math.min(me?.counted ?? 0, cfg.eligibility.minMatches))} /{' '}
+                    {num(Math.min(me?.qualifyingMatches ?? 0, cfg.eligibility.minMatches))} /{' '}
                     {num(cfg.eligibility.minMatches)}
                   </span>
                 </div>
                 <Progress
-                  value={me?.counted ?? 0}
+                  value={me?.qualifyingMatches ?? 0}
                   max={cfg.eligibility.minMatches}
                   tone="gold"
                   label={d.home.counted}
                 />
               </div>
+              {cfg.eligibility.minOpponents > 0 && (
               <div>
-                <div className="mb-1 flex justify-between">
-                  <span>{d.home.opponents}</span>
-                  <span className="tabular text-muted">
-                    {num(Math.min(me?.distinctOpponents ?? 0, cfg.eligibility.minOpponents))} /{' '}
-                    {num(cfg.eligibility.minOpponents)}
-                  </span>
+                  <div className="mb-1 flex justify-between">
+                    <span>{d.home.opponents}</span>
+                    <span className="tabular text-muted">
+                      {num(Math.min(me?.distinctOpponents ?? 0, cfg.eligibility.minOpponents))} /{' '}
+                      {num(cfg.eligibility.minOpponents)}
+                    </span>
+                  </div>
+                  <Progress
+                    value={me?.distinctOpponents ?? 0}
+                    max={cfg.eligibility.minOpponents}
+                    tone="gold"
+                    label={d.home.opponents}
+                  />
                 </div>
-                <Progress
-                  value={me?.distinctOpponents ?? 0}
-                  max={cfg.eligibility.minOpponents}
-                  tone="gold"
-                  label={d.home.opponents}
-                />
-              </div>
+              )}
             </>
           )}
         </div>

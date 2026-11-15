@@ -17,8 +17,13 @@ export interface GameConfig {
   /** BR-05 */ monthlyCap: number;
   /** BR-06 */ dailyRankedLimit: number;
   /** BR-07 */ samePair: { per24h: number; perMonth: number };
-  /** BR-08 */ eligibility: { minMatches: number; minOpponents: number };
-  /** BR-09 */ rating: { start: number; k: number };
+  /**
+   * Sabbaq CR v3 section 6: prize qualification is >= 60 completed (non-ghost) matches in the month. The old rule of
+   * 10 distinct opponents is removed (0 = off).
+   */
+  eligibility: { minMatches: number; minOpponents: number };
+  /** Sabbaq CR v3 section 6: monthly Elo, everyone starts each Riyadh month at 1,000, K = 32. */
+  rating: { start: number; k: number };
   /** BR-11, BR-12 */ abandon: {
     graceSeconds: number;
     blockAfter: number;
@@ -33,6 +38,8 @@ export interface GameConfig {
   /** BRD section 3, fair-play signals */ fairPlay: { minHumanMs: number; maxFastAnswers: number };
   /** Web demo mode, not in the BRD (unranked) */ speedRound: { seconds: number };
   /** BRD section 1; build prompt 10: 10,000 down to 1,000 SAR, in halalas */ prizeTableHalalas: number[];
+  /** Sabbaq CR v3 section 6: how many top youth players get the youth badge (in-kind award). Not given; default 3. */
+  youthAwardSlots: number;
 }
 
 export interface MatchmakingStep {
@@ -56,8 +63,8 @@ export const DEFAULT_CONFIG: GameConfig = {
   monthlyCap: 60,
   dailyRankedLimit: 10,
   samePair: { per24h: 1, perMonth: 4 },
-  eligibility: { minMatches: 20, minOpponents: 10 },
-  rating: { start: 1200, k: 24 },
+  eligibility: { minMatches: 60, minOpponents: 0 },
+  rating: { start: 1000, k: 32 },
   abandon: { graceSeconds: 20, blockAfter: 3, windowHours: 24, blockHours: 24 },
   questionRepeatDays: 90,
   maxSponsored: 2,
@@ -72,6 +79,7 @@ export const DEFAULT_CONFIG: GameConfig = {
   acceptSeconds: 10,
   fairPlay: { minHumanMs: 800, maxFastAnswers: 2 },
   speedRound: { seconds: 60 },
+  youthAwardSlots: 3,
   prizeTableHalalas: [10_000, 9_000, 8_000, 7_000, 6_000, 5_000, 4_000, 3_000, 2_000, 1_000].map(
     (sar) => sar * 100,
   ),

@@ -29,6 +29,7 @@ import {
   type RankedResult,
   type SelectableQuestion,
   totalAnswerMs,
+  monthlyRating,
 } from './index.js';
 
 const ans = (correct: boolean, latencyMs: number | null = 3000): AnswerRecord => ({
@@ -96,12 +97,21 @@ describe('monthly ranking', () => {
     expect(riyadhMonthKey('2026-10-31T20:59:59Z')).toBe('2026-10');
   });
 
-  it('BR-08: eligible with at least 20 qualified matches against at least 10 distinct opponents', () => {
-    const twenty = Array.from({ length: 20 }, (_, i) => result(i));
-    expect(standingFor('p', twenty, '2026-10', cfg).eligible).toBe(true);
-    const fewOpponents = twenty.map((r, i) => ({ ...r, opponentId: `o${i % 9}` }));
-    expect(standingFor('p', fewOpponents, '2026-10', cfg).eligible).toBe(false);
-    expect(standingFor('p', twenty.slice(0, 19), '2026-10', cfg).eligible).toBe(false);
+  it('CR v3 s6: eligible with at least 60 completed matches; ghost matches do not count; no opponent rule', () => {
+    const sixty = Array.from({ length: 60 }, (_, i) => ({ ...result(i % 28), matchId: `m${i}`, opponentId: 'o1' }));
+    expect(standingFor('p', sixty, '2026-10', cfg).eligible).toBe(true);
+    expect(standingFor('p', sixty.slice(0, 59), '2026-10', cfg).eligible).toBe(false);
+    const withGhost = sixty.map((r, i) => (i === 0 ? { ...r, ghost: true } : r));
+    expect(standingFor('p', withGhost, '2026-10', cfg).qualifyingMatches).toBe(59);
+    expect(standingFor('p', withGhost, '2026-10', cfg).eligible).toBe(false);
+  });
+
+  it('CR v3 s6: monthly rating starts at 1,000 and replays the month; ghost matches move it', () => {
+    expect(monthlyRating([], '2026-10', cfg)).toEqual({ rating: 1000, history: [] });
+    const r = monthlyRating([{ ...result(1), ghost: true }], '2026-10', cfg);
+    expect(r.rating).toBe(result(1).outcome === 'win' ? 1016 : result(1).outcome === 'loss' ? 984 : 1000);
+    expect(r.history).toHaveLength(1);
+    expect(monthlyRating([result(1)], '2026-11', cfg).rating).toBe(1000);
   });
 
   it('BR-10: points, then accuracy, then average time, then who reached the points first', () => {
@@ -135,11 +145,11 @@ describe('monthly ranking', () => {
 });
 
 describe('rating', () => {
-  it('BR-09: Elo with K=24; equal ratings move by 12', () => {
-    expect(updateRatings(1200, 1200, 'win', cfg)).toEqual({ a: 1212, b: 1188 });
-    expect(updateRatings(1200, 1200, 'draw', cfg)).toEqual({ a: 1200, b: 1200 });
+  it('CR v3 s6: Elo with K=32; equal ratings move by 16; beating a stronger player gains more', () => {
+    expect(updateRatings(1000, 1000, 'win', cfg)).toEqual({ a: 1016, b: 984 });
+    expect(updateRatings(1000, 1000, 'draw', cfg)).toEqual({ a: 1000, b: 1000 });
     const upset = updateRatings(1000, 1400, 'win', cfg);
-    expect(upset.a - 1000).toBeGreaterThan(12);
+    expect(upset.a - 1000).toBeGreaterThan(16);
   });
 });
 

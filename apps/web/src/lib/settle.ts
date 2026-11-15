@@ -1,8 +1,11 @@
+import { toMonthlyScale } from './sample';
 import {
   inhumanSpeedFlag,
   matchScore,
   monthlyPoints,
   outcomeFor,
+  monthlyRating,
+  riyadhMonthKey,
   correctCount,
   totalAnswerMs,
   rankedXp,
@@ -42,13 +45,17 @@ export function settle(
   const outcome = m.forfeit
     ? 'loss'
     : outcomeFor(myScore, theirScore, totalAnswerMs(m.mine, cfg), totalAnswerMs(m.theirs, cfg));
-  const ratingBefore = state.player?.rating ?? cfg.rating.start;
   const ranked = m.mode === 'ranked';
+  // CR v3 section 6: the rating that counts is this month's, starting at 1,000.
+  const ratingBefore = ranked
+    ? monthlyRating(state.myResults, riyadhMonthKey(m.at), cfg).rating
+    : (state.player?.rating ?? cfg.rating.start);
+  const opponentRating = toMonthlyScale(m.opponent.rating, cfg);
 
   const counted = ranked && countedThisMonth(state, m.at) < cfg.monthlyCap;
   const points = counted ? monthlyPoints(outcome, myScore, cfg) : 0;
   const ratingAfter = ranked
-    ? updateRatings(ratingBefore, m.opponent.rating, outcome, cfg).a
+    ? updateRatings(ratingBefore, opponentRating, outcome, cfg).a
     : ratingBefore;
   const answered = m.mine.filter((a) => a.latencyMs !== null);
   // FR-30: XP for completed matches only; it never touches monthly points (architecture rule 10).
@@ -89,7 +96,8 @@ export function settle(
         opponentId: m.opponent.id,
         outcome,
         score: myScore,
-        correct: myScore / cfg.pointsPerCorrect,
+        correct: correctCount(m.mine),
+        opponentRating: opponentRating,
         questions: m.questions.length,
         latencyTotalMs: answered.reduce((s, a) => s + (a.latencyMs ?? 0), 0),
         answered: answered.length,

@@ -44,6 +44,9 @@ export interface SamplePlayer {
   /** Rounded sample coordinates near the city centre. */
   location: { lat: number; lng: number };
   allTimeBase: number;
+  /** CR v3: sample age group and cash eligibility (sample players are treated as ID-checked adults). */
+  ageGroup: 'youth' | 'adult';
+  cashEligible: boolean;
 }
 
 export interface Player {
